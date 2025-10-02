@@ -46,7 +46,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
-              <p>{user!.email}</p>
+              <p>{user?.email || "Not set"}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Phone Number</p>

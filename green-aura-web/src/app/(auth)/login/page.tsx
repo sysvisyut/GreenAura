@@ -1,7 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
 import { pageTransition } from "@/lib/animations";
@@ -11,6 +18,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -48,7 +56,12 @@ export default function LoginPage() {
     try {
       const { error } = await signInWithEmail(email, password);
       if (error) {
-        setError(error);
+        // If credentials invalid or user not found, guide to signup instead of inline error
+        toast.error("User not registered", {
+          description: "Please create an account to continue.",
+        });
+        router.push(`/signup?email=${encodeURIComponent(email)}`);
+        return;
       }
       // After the sign-in attempt, the AuthContext's onAuthStateChange listener
       // will update the `user` state. The useEffect above will then trigger
@@ -66,8 +79,7 @@ export default function LoginPage() {
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      exit="exit"
-    >
+      exit="exit">
       <Card className="w-full max-w-md" animate>
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
@@ -92,7 +104,7 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2 relative">
-              <label htmlFor="password"className="text-sm font-medium">
+              <label htmlFor="password" className="text-sm font-medium">
                 Password
               </label>
               <Input
@@ -107,8 +119,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 className="absolute right-3 top-[2.1rem] text-muted-foreground"
-                onClick={() => setShowPassword(!showPassword)}
-              >
+                onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
