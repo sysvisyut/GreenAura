@@ -29,6 +29,15 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
+  const handleSkip = async () => {
+    try {
+      document.cookie = `ga_skip_auth=true; path=/; max-age=${60 * 10}`; // 10 minutes
+      router.push("/");
+    } catch (e) {
+      // no-op
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -117,13 +126,16 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex justify-between w-full">
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link href="/signup" className="text-primary hover:underline">
               Sign up
             </Link>
           </p>
+          <Button variant="outline" onClick={handleSkip}>
+            Skip for now
+          </Button>
         </CardFooter>
       </Card>
     </motion.div>

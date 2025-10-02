@@ -60,17 +60,20 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Development bypass cookie: when present and true, allow access without auth
+  const skipAuth = request.cookies.get("ga_skip_auth")?.value === "true";
+
   // Define protected routes
   const protectedRoutes = ["/", "/profile", "/cart", "/checkout", "/orders"];
 
   // If the user is not logged in and is trying to access a protected route, redirect to login
-  if (!session && protectedRoutes.includes(pathname)) {
+  if (!session && !skipAuth && protectedRoutes.includes(pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // If the user is logged in and is trying to access an auth route, redirect to home
+  // If the user is logged in (or skip is enabled) and is trying to access an auth route, redirect to home
   const authRoutes = ["/login", "/signup", "/verify"];
-  if (session && authRoutes.includes(pathname)) {
+  if ((session || skipAuth) && authRoutes.includes(pathname)) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -79,13 +82,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
