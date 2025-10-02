@@ -4,7 +4,23 @@ import { useAuth } from "@/context/auth-context";
 import { useCart } from "@/context/cart-context";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { ShoppingCart, User, Menu, X, Search, Home, LayoutGrid } from "lucide-react";
+import {
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  Search,
+  Home,
+  LayoutGrid,
+  Leaf,
+  Sprout,
+  Vegan,
+  Flower2,
+  LeafIcon,
+  LeafyGreen,
+  LucideLeaf,
+  LeafyGreenIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -43,21 +59,17 @@ export function Navbar() {
     <header
       className={cn(
         "sticky top-0 z-40 w-full transition-all duration-200",
-        isScrolled
-          ? "bg-background/80 backdrop-blur-md border-b shadow-sm"
-          : "bg-background"
-      )}
-    >
+        isScrolled ? "bg-background/80 backdrop-blur-md border-b shadow-sm" : "bg-background"
+      )}>
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <motion.div
-              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+              className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-md"
               whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span className="text-primary-foreground font-bold">GA</span>
+              whileTap={{ scale: 0.95 }}>
+              <Vegan className="w-5 h-5 text-primary-foreground" />
             </motion.div>
             <span className="font-bold text-xl">GreenAura</span>
           </Link>
@@ -73,8 +85,7 @@ export function Navbar() {
                   pathname === item.href
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
-                )}
-              >
+                )}>
                 <item.icon size={18} />
                 <span>{item.label}</span>
                 {item.badge && (
@@ -90,8 +101,7 @@ export function Navbar() {
           <button
             className="md:hidden flex items-center justify-center"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
+            aria-label="Toggle menu">
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
@@ -103,8 +113,7 @@ export function Navbar() {
           className="md:hidden"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-        >
+          exit={{ opacity: 0, height: 0 }}>
           <div className="container mx-auto px-4 pb-4 pt-2 border-t">
             <nav className="grid gap-4">
               {navItems.map((item) => (
@@ -113,11 +122,8 @@ export function Navbar() {
                   href={item.href}
                   className={cn(
                     "flex items-center space-x-2 px-3 py-2 rounded-md",
-                    pathname === item.href
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-accent"
-                  )}
-                >
+                    pathname === item.href ? "bg-primary/10 text-primary" : "hover:bg-accent"
+                  )}>
                   <item.icon size={18} />
                   <span>{item.label}</span>
                   {item.badge && (
