@@ -44,7 +44,7 @@ export const ApiService = {
     }
     return { session: data.session ?? null, error: null };
   },
-  
+
   async verifyOtp(email: string, token: string) {
     const supabase = getSupabaseClient();
     log.info("verifyOtp: start", { email });
@@ -91,7 +91,10 @@ export const ApiService = {
     if (!sessionData?.session) {
       return null;
     }
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     if (error) {
       log.warn("getCurrentUser: no user from session", error);
       return null;
@@ -101,11 +104,7 @@ export const ApiService = {
 
   async getUserProfile(userId: string): Promise<Tables<"users"> | null> {
     const supabase = getSupabaseClient();
-    const { data, error } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
+    const { data, error } = await supabase.from("users").select("*").eq("id", userId).maybeSingle();
     if (error) {
       log.error("getUserProfile: error", error);
       return null;
@@ -115,7 +114,11 @@ export const ApiService = {
 
   async createUserProfile(userId: string, fullName: string, phoneNumber: string | null) {
     const supabase = getSupabaseClient();
-    const payload: TablesInsert<"users"> = { id: userId, full_name: fullName, phone_number: phoneNumber ?? null };
+    const payload: TablesInsert<"users"> = {
+      id: userId,
+      full_name: fullName,
+      phone_number: phoneNumber ?? null,
+    };
     log.info("createUserProfile: inserting", payload);
     const { data, error } = await supabase.from("users").insert(payload).select().single();
     if (error) {
@@ -156,7 +159,11 @@ export const ApiService = {
 
   async addAddress(addressData: TablesInsert<"user_addresses">) {
     const supabase = getSupabaseClient();
-    const { data, error } = await supabase.from("user_addresses").insert(addressData).select().single();
+    const { data, error } = await supabase
+      .from("user_addresses")
+      .insert(addressData)
+      .select()
+      .single();
     if (error) {
       log.error("addAddress: error", error);
       throw error;
@@ -206,7 +213,11 @@ export const ApiService = {
 
   async getOrganizationDetails(organizationId: string) {
     const supabase = getSupabaseClient();
-    const { data, error } = await supabase.from("organizations").select("*").eq("id", organizationId).single();
+    const { data, error } = await supabase
+      .from("organizations")
+      .select("*")
+      .eq("id", organizationId)
+      .single();
     if (error) {
       log.error("getOrganizationDetails: error", error);
       throw error;
@@ -244,6 +255,61 @@ export const ApiService = {
     return data;
   },
 
+  async getLatestProducts(limit = 12) {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .eq("is_available", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) {
+      log.error("getLatestProducts: error", error);
+      throw error;
+    }
+    return data;
+  },
+
+  async getAllProducts(params?: {
+    search?: string;
+    sort?: "created_desc" | "price_asc" | "price_desc" | "name_asc";
+    limit?: number;
+  }) {
+    const supabase = getSupabaseClient();
+    let query = supabase.from("products").select("*").eq("is_available", true);
+
+    if (params?.search && params.search.trim()) {
+      query = query.ilike("name", `%${params.search}%`);
+    }
+
+    switch (params?.sort) {
+      case "price_asc":
+        query = query.order("price", { ascending: true });
+        break;
+      case "price_desc":
+        query = query.order("price", { ascending: false });
+        break;
+      case "name_asc":
+        query = query.order("name", { ascending: true });
+        break;
+      case "created_desc":
+      default:
+        query = query.order("created_at", { ascending: false });
+        break;
+    }
+
+    if (params?.limit) {
+      query = query.limit(params.limit);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      log.error("getAllProducts: error", error);
+      throw error;
+    }
+    return data;
+  },
+
   async searchProducts(query: string) {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
@@ -273,6 +339,58 @@ export const ApiService = {
     return data;
   },
 
+  async getProductsByCategory(category: string) {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .ilike("category", category)
+      .eq("is_available", true)
+      .order("created_at", { ascending: false });
+    if (error) {
+      log.error("getProductsByCategory: error", error);
+      throw error;
+    }
+    return data;
+  },
+
+  async getRelatedProducts(productId: string, category: string | null, limit = 8) {
+    const supabase = getSupabaseClient();
+    let query = supabase
+      .from("products")
+      .select("*")
+      .neq("id", productId)
+      .eq("is_available", true)
+      .limit(limit);
+
+    if (category) {
+      query = query.ilike("category", category);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      log.error("getRelatedProducts: error", error);
+      throw error;
+    }
+    return data;
+  },
+
+  async listCategories() {
+    const supabase = getSupabaseClient();
+    // Fetch categories and deduplicate on client for portability
+    const { data, error } = await supabase
+      .from("products")
+      .select("category")
+      .eq("is_available", true)
+      .not("category", "is", null);
+    if (error) {
+      log.error("listCategories: error", error);
+      throw error;
+    }
+    const categories = Array.from(new Set((data ?? []).map((r) => (r as any).category as string)));
+    return categories;
+  },
+
   // Cart
   async getCartItems(userId: string) {
     const supabase = getSupabaseClient();
@@ -290,7 +408,11 @@ export const ApiService = {
 
   async addToCart(userId: string, productId: string, quantity: number) {
     const supabase = getSupabaseClient();
-    const payload: TablesInsert<"cart_items"> = { user_id: userId, product_id: productId, quantity };
+    const payload: TablesInsert<"cart_items"> = {
+      user_id: userId,
+      product_id: productId,
+      quantity,
+    };
     log.info("addToCart: upsert", payload);
     const { data, error } = await supabase
       .from("cart_items")
@@ -408,7 +530,12 @@ export const ApiService = {
     return data;
   },
 
-  async updatePaymentStatus(orderId: string, transactionId: string | null, status: string, gatewayResponse: unknown) {
+  async updatePaymentStatus(
+    orderId: string,
+    transactionId: string | null,
+    status: string,
+    gatewayResponse: unknown
+  ) {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("payments")
@@ -426,7 +553,11 @@ export const ApiService = {
   // Owner
   async getOrganizationByOwner(ownerId: string) {
     const supabase = getSupabaseClient();
-    const { data, error } = await supabase.from("organizations").select("*").eq("owner_id", ownerId).maybeSingle();
+    const { data, error } = await supabase
+      .from("organizations")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .maybeSingle();
     if (error) {
       log.error("getOrganizationByOwner: error", error);
       throw error;

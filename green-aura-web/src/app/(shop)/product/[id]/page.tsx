@@ -13,79 +13,43 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
-// Sample product data
-const PRODUCT = {
-  id: "1",
-  name: "Organic Tomatoes",
-  price: 40,
-  unit: "kg",
-  category: "Vegetables",
-  image_url: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=800",
-  description: "Fresh, organic tomatoes grown without pesticides or chemical fertilizers. Picked at peak ripeness for maximum flavor and nutrition. Perfect for salads, sandwiches, or cooking.",
-  farm: {
-    id: "1",
-    name: "Green Valley Farms",
-    location: "Bangalore Rural",
-  },
-  stock_quantity: 25,
-  related_products: [
-    {
-      id: "2",
-      name: "Fresh Spinach",
-      price: 30,
-      unit: "bunch",
-      category: "Vegetables",
-      image_url: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?q=80&w=500",
-    },
-    {
-      id: "3",
-      name: "Red Apples",
-      price: 120,
-      unit: "kg",
-      category: "Fruits",
-      image_url: "https://images.unsplash.com/photo-1570913149827-d2ac84ab3f9a?q=80&w=500",
-    },
-    {
-      id: "4",
-      name: "Organic Carrots",
-      price: 35,
-      unit: "kg",
-      category: "Vegetables",
-      image_url: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?q=80&w=500",
-    },
-  ],
-};
+import { ApiService } from "@/services/apiService";
 
 export default function ProductPage() {
   const params = useParams();
   const productId = params?.id as string;
   const { addItem } = useCart();
-  
+
   const [product, setProduct] = useState<any | null>(null);
+  const [related, setRelated] = useState<any[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // Simulate API call to fetch product
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setProduct(PRODUCT);
-      setIsLoading(false);
-    }, 800);
-
-    return () => clearTimeout(timer);
+    if (!productId) return;
+    const run = async () => {
+      setIsLoading(true);
+      try {
+        const p = await ApiService.getProductById(productId);
+        setProduct(p);
+        if (p) {
+          const rel = await ApiService.getRelatedProducts(p.id, p.category, 8);
+          setRelated(rel ?? []);
+        } else {
+          setRelated([]);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    run();
   }, [productId]);
 
   const handleAddToCart = () => {
     if (!product) return;
-    
     setIsAddingToCart(true);
-    
-    // Add to cart
     addItem(product, quantity);
-    
-    // Reset state
     setTimeout(() => {
       setIsAddingToCart(false);
     }, 600);
@@ -119,8 +83,7 @@ export default function ProductPage() {
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      exit="exit"
-    >
+      exit="exit">
       {/* Breadcrumb */}
       <div className="flex items-center mb-6 text-sm">
         <Link href="/" className="text-muted-foreground hover:text-foreground">
@@ -131,12 +94,15 @@ export default function ProductPage() {
           Categories
         </Link>
         <span className="mx-2 text-muted-foreground">/</span>
-        <Link
-          href={`/categories/${product.category?.toLowerCase()}`}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          {product.category}
-        </Link>
+        {product.category ? (
+          <Link
+            href={`/categories/${encodeURIComponent(String(product.category).toLowerCase())}`}
+            className="text-muted-foreground hover:text-foreground">
+            {product.category}
+          </Link>
+        ) : (
+          <span className="text-muted-foreground">Uncategorized</span>
+        )}
         <span className="mx-2 text-muted-foreground">/</span>
         <span className="text-foreground truncate">{product.name}</span>
       </div>
@@ -174,30 +140,21 @@ export default function ProductPage() {
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="success">In Stock</Badge>
-              {product.category && (
-                <Badge variant="outline">{product.category}</Badge>
-              )}
+              {product.category && <Badge variant="outline">{product.category}</Badge>}
             </div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
             <div className="flex items-baseline mb-4">
-              <span className="text-2xl font-semibold">
-                {formatPrice(product.price)}
-              </span>
-              <span className="text-muted-foreground ml-2">
-                / {product.unit}
-              </span>
+              <span className="text-2xl font-semibold">{formatPrice(product.price)}</span>
+              <span className="text-muted-foreground ml-2">/ {product.unit}</span>
             </div>
             <p className="text-muted-foreground mb-6">{product.description}</p>
-            
+
             {/* Farm Info */}
             <div className="mb-6">
               <h3 className="font-medium mb-2">From</h3>
-              <Link
-                href={`/farms/${product.farm.id}`}
-                className="flex items-center text-primary hover:underline"
-              >
-                {product.farm.name} • {product.farm.location}
-              </Link>
+              <div className="flex items-center text-muted-foreground">
+                Organization #{product.organization_id?.slice?.(0, 8) ?? ""}
+              </div>
             </div>
           </div>
 
@@ -211,7 +168,11 @@ export default function ProductPage() {
                 max={product.stock_quantity}
                 size="lg"
               />
-              <Button size="lg" className="flex-1" onClick={handleAddToCart} isLoading={isAddingToCart}>
+              <Button
+                size="lg"
+                className="flex-1"
+                onClick={handleAddToCart}
+                isLoading={isAddingToCart}>
                 Add to Cart
               </Button>
             </div>
@@ -243,8 +204,7 @@ export default function ProductPage() {
             <Link
               key={relatedProduct.id}
               href={`/product/${relatedProduct.id}`}
-              className="group rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow"
-            >
+              className="group rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow">
               <div className="relative aspect-square bg-muted/30">
                 {relatedProduct.image_url ? (
                   <Image
@@ -263,9 +223,7 @@ export default function ProductPage() {
               <div className="p-4">
                 <h3 className="font-medium truncate">{relatedProduct.name}</h3>
                 <div className="flex items-baseline mt-1">
-                  <span className="font-semibold">
-                    {formatPrice(relatedProduct.price)}
-                  </span>
+                  <span className="font-semibold">{formatPrice(relatedProduct.price)}</span>
                   <span className="text-xs text-muted-foreground ml-1">
                     / {relatedProduct.unit}
                   </span>
