@@ -1,7 +1,14 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
 import { pageTransition } from "@/lib/animations";
@@ -58,12 +65,12 @@ export default function VerifyPage() {
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text/plain").trim();
-    
+
     // Check if pasted content is a 6-digit number
     if (/^\d{6}$/.test(pastedData)) {
       const newOtp = pastedData.split("");
       setOtp(newOtp);
-      
+
       // Focus the last input
       inputRefs.current[5]?.focus();
     }
@@ -74,7 +81,7 @@ export default function VerifyPage() {
     setError(null);
 
     const otpValue = otp.join("");
-    
+
     // Validate OTP
     if (otpValue.length !== 6) {
       setError("Please enter a valid 6-digit code");
@@ -90,8 +97,9 @@ export default function VerifyPage() {
         setIsLoading(false); // Stop loading on error
         return;
       }
-      
-      // If successful, redirect to home page
+
+      // If successful, redirect based on role
+      // After verify, AuthContext onAuthStateChange will set user; let middleware handle too
       router.push("/");
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
@@ -115,14 +123,14 @@ export default function VerifyPage() {
         setError(error);
         return;
       }
-      
+
       // Reset OTP fields
       setOtp(Array(6).fill(""));
       // Focus the first input
       if (inputRefs.current[0]) {
         inputRefs.current[0].focus();
       }
-      
+
       // Show success message
       setError(null);
       alert("A new verification code has been sent to your email");
@@ -139,8 +147,7 @@ export default function VerifyPage() {
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      exit="exit"
-    >
+      exit="exit">
       <Card className="w-full max-w-md" animate>
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Verify your email</CardTitle>
@@ -170,23 +177,18 @@ export default function VerifyPage() {
                 />
               ))}
             </div>
-            {error && (
-              <div className="text-destructive text-sm text-center">
-                {error}
-              </div>
-            )}
+            {error && <div className="text-destructive text-sm text-center">{error}</div>}
             <Button type="submit" className="w-full" isLoading={isLoading}>
               Verify
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={handleResendCode} 
-            disabled={isLoading}
-          >
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleResendCode}
+            disabled={isLoading}>
             Resend verification code
           </Button>
           <p className="text-sm text-muted-foreground text-center">

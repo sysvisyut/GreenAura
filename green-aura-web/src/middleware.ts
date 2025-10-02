@@ -59,6 +59,17 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
+  // Fetch role from public.users if authenticated
+  let role: "customer" | "organization" | null = null;
+  if (session?.user?.id) {
+    const { data: userRow } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", session.user.id)
+      .maybeSingle();
+    role = (userRow as any)?.role ?? null;
+  }
+
   const { pathname } = request.nextUrl;
 
   // Define protected route prefixes
@@ -69,10 +80,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // If the user is logged in and is trying to access an auth route, redirect to home
+  // Role specific protections
+  if (session && role) {
+    // Organizations should not see cart/checkout
+    if (
+      role === "organization" &&
+      (pathname.startsWith("/cart") || pathname.startsWith("/checkout"))
+    ) {
+      return NextResponse.redirect(new URL("/owner", request.url));
+    }
+    // Customers should not access owner area
+    if (role === "customer" && pathname.startsWith("/owner")) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  }
+
+  // If the user is logged in and is trying to access an auth route, redirect to role landing
   const authRoutes = ["/login", "/signup", "/verify"];
   if (session && authRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
+    const target = role === "organization" ? "/owner" : "/";
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
   return response;

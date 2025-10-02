@@ -27,27 +27,39 @@ export default function OwnerOrdersPage() {
     setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
   };
 
-  if (!user) return <AuthGate>{null}</AuthGate>;
+  if (!user) return <AuthGate allow="organization">{null}</AuthGate>;
   if (!orgId) return <div style={{ padding: 16 }}>No organization linked.</div>;
 
   return (
-    <AuthGate>
-    <div style={{ padding: 16, display: "grid", gap: 12 }}>
-      <h1>Manage Orders</h1>
-      <div style={{ display: "grid", gap: 8 }}>
-        {orders.map((o) => (
-          <div key={o.id} style={{ border: "1px solid #333", borderRadius: 8, padding: 12, display: "grid", gap: 8 }}>
-            <div>Order #{o.id.slice(0, 8)} • ₹{o.total_amount}</div>
-            <div>Status: {o.status}</div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {(["pending", "confirmed", "out_for_delivery", "delivered"] as const).map((s) => (
-                <button key={s} onClick={() => update(o.id, s)} disabled={o.status === s}>{s}</button>
-              ))}
+    <AuthGate allow="organization">
+      <div style={{ padding: 16, display: "grid", gap: 12 }}>
+        <h1>Manage Orders</h1>
+        <div style={{ display: "grid", gap: 8 }}>
+          {orders.map((o) => (
+            <div
+              key={o.id}
+              style={{
+                border: "1px solid #333",
+                borderRadius: 8,
+                padding: 12,
+                display: "grid",
+                gap: 8,
+              }}>
+              <div>
+                Order #{o.id.slice(0, 8)} • ₹{o.total_amount}
+              </div>
+              <div>Status: {o.status}</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {(["pending", "confirmed", "out_for_delivery", "delivered"] as const).map((s) => (
+                  <button key={s} onClick={() => update(o.id, s)} disabled={o.status === s}>
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
     </AuthGate>
   );
 }

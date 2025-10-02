@@ -28,24 +28,24 @@ export default function OwnerDashboardPage() {
     })();
   }, [user]);
 
-  if (!user) return <AuthGate>{null}</AuthGate>;
+  if (!user) return <AuthGate allow="organization">{null}</AuthGate>;
   if (!org) return <div style={{ padding: 16 }}>No organization linked to your account.</div>;
 
   const pendingCount = orders.filter((o) => o.status === "pending").length;
   const lowStock = products.filter((p) => (p.stock_quantity ?? 0) < 5).length;
 
   return (
-    <AuthGate>
-    <div style={{ padding: 16, display: "grid", gap: 12 }}>
-      <h1>{org.name} • Dashboard</h1>
-      <div>Pending Orders: {pendingCount}</div>
-      <div>Low-stock Products: {lowStock}</div>
+    <AuthGate allow="organization">
+      <div style={{ padding: 16, display: "grid", gap: 12 }}>
+        <h1>{org.name} • Dashboard</h1>
+        <div>Pending Orders: {pendingCount}</div>
+        <div>Low-stock Products: {lowStock}</div>
 
-      <div style={{ display: "flex", gap: 12 }}>
-        <Link href="/owner/products">Manage Products</Link>
-        <Link href="/owner/orders">Manage Orders</Link>
+        <div style={{ display: "flex", gap: 12 }}>
+          <Link href="/owner/products">Manage Products</Link>
+          <Link href="/owner/orders">Manage Orders</Link>
+        </div>
       </div>
-    </div>
     </AuthGate>
   );
 }

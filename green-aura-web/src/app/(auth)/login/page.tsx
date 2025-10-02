@@ -30,10 +30,10 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // If the user object exists, it means they are logged in.
-    // Redirect them to the home page.
     if (user) {
-      router.push("/");
+      // Redirect based on role
+      if ((user as any).role === "organization") router.push("/owner");
+      else router.push("/");
     }
   }, [user, router]);
 

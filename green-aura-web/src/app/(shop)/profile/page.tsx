@@ -7,14 +7,27 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { pageTransition } from "@/lib/animations";
 import { AuthGate } from "@/components/AuthGate";
+import { useState } from "react";
 
 export default function ProfilePage() {
-  const { user, profile, signOut, isLoading } = useAuth();
+  const { user, profile, signOut, isLoading, updateProfile } = useAuth();
   const router = useRouter();
+  const [fullName, setFullName] = useState(profile?.full_name ?? "");
+  const [phone, setPhone] = useState(profile?.phone_number ?? "");
+  const [saving, setSaving] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
     router.push("/login");
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateProfile({ full_name: fullName, phone_number: phone });
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (isLoading) {
@@ -42,7 +55,11 @@ export default function ProfilePage() {
           <CardContent className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground">Full Name</p>
-              <p>{profile?.full_name || "Not set"}</p>
+              <input
+                className="w-full border rounded-md h-10 px-3"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
@@ -50,8 +67,15 @@ export default function ProfilePage() {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Phone Number</p>
-              <p>{profile?.phone_number || "Not set"}</p>
+              <input
+                className="w-full border rounded-md h-10 px-3"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </div>
+            <button onClick={save} disabled={saving} className="border rounded-md h-10 px-4">
+              {saving ? "Saving..." : "Save"}
+            </button>
             <Button onClick={handleSignOut} className="w-full">
               Logout
             </Button>

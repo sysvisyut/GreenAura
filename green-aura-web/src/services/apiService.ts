@@ -10,7 +10,12 @@ export type SignInResponse = { session: unknown | null; error: string | null };
 
 export const ApiService = {
   // Authentication & User Management
-  async signUpWithEmail(fullName: string, email: string, password: string) {
+  async signUpWithEmail(
+    fullName: string,
+    email: string,
+    password: string,
+    role: "customer" | "organization" = "customer"
+  ) {
     const supabase = getSupabaseClient();
     log.info("signUpWithEmail: start", { email });
     const { data, error } = await supabase.auth.signUp({
@@ -19,6 +24,7 @@ export const ApiService = {
       options: {
         data: {
           full_name: fullName,
+          role,
         },
       },
     });
