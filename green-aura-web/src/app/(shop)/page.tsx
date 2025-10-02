@@ -101,14 +101,22 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
 
-  // Simulate loading
+  // Load featured from Supabase
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFeaturedProducts(FEATURED_PRODUCTS);
-      setIsLoading(false);
-    }, 800);
-
-    return () => clearTimeout(timer);
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await (
+          await import("@/services/apiService")
+        ).ApiService.getFeaturedProducts(8);
+        if (mounted) setFeaturedProducts(data ?? []);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleAddToCart = (productId: string) => {
@@ -122,8 +130,7 @@ export default function HomePage() {
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      exit="exit"
-    >
+      exit="exit">
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[500px] flex items-center">
         <div className="absolute inset-0 z-0">
@@ -136,23 +143,23 @@ export default function HomePage() {
           />
         </div>
         <div className="container relative z-10 mx-auto px-4">
-          <motion.div
-            className="max-w-xl"
-            variants={slideUp}
-            initial="hidden"
-            animate="visible"
-          >
+          <motion.div className="max-w-xl" variants={slideUp} initial="hidden" animate="visible">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
               Farm Fresh, Delivered Direct
             </h1>
             <p className="text-lg text-white/90 mb-8">
-              Connecting you with local farmers for the freshest produce, delivered straight to your door.
+              Connecting you with local farmers for the freshest produce, delivered straight to your
+              door.
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" asChild>
                 <Link href="/categories">Shop Now</Link>
               </Button>
-              <Button size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20" asChild>
+              <Button
+                size="lg"
+                variant="outline"
+                className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+                asChild>
                 <Link href="/about">Learn More</Link>
               </Button>
             </div>
@@ -169,14 +176,13 @@ export default function HomePage() {
               View All <ArrowRight size={16} className="ml-1" />
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {CATEGORIES.map((category) => (
               <Link
                 key={category.id}
                 href={`/categories/${category.id}`}
-                className="group relative rounded-lg overflow-hidden aspect-square"
-              >
+                className="group relative rounded-lg overflow-hidden aspect-square">
                 <Image
                   src={category.image}
                   alt={category.name}
@@ -202,7 +208,7 @@ export default function HomePage() {
               View All <ArrowRight size={16} className="ml-1" />
             </Link>
           </div>
-          
+
           <ProductGrid
             products={featuredProducts}
             isLoading={isLoading}
@@ -220,14 +226,13 @@ export default function HomePage() {
               View All <ArrowRight size={16} className="ml-1" />
             </Link>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {FARMS.map((farm) => (
               <Link
                 key={farm.id}
                 href={`/farms/${farm.id}`}
-                className="group rounded-lg overflow-hidden border bg-card hover:shadow-md transition-shadow"
-              >
+                className="group rounded-lg overflow-hidden border bg-card hover:shadow-md transition-shadow">
                 <div className="relative h-48">
                   <Image
                     src={farm.image}
@@ -255,9 +260,12 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">Join the Farm-to-Table Movement</h2>
             <p className="text-lg mb-8">
-              Sign up today and get 10% off your first order. Support local farmers and enjoy the freshest produce.
+              Sign up today and get 10% off your first order. Support local farmers and enjoy the
+              freshest produce.
             </p>
-            <Button size="lg" onClick={() => toast.success("Promotion applied! Use code FRESH10 at checkout.")}>
+            <Button
+              size="lg"
+              onClick={() => toast.success("Promotion applied! Use code FRESH10 at checkout.")}>
               Get Started
             </Button>
           </div>
