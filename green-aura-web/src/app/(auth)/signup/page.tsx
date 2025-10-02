@@ -1,22 +1,32 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
 import { pageTransition } from "@/lib/animations";
 import { isValidEmail } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function SignupPage() {
+  const searchParams = useSearchParams();
+  const prefillEmail = searchParams.get("email") || "";
   const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(prefillEmail);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<"customer" | "organization">("customer");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { signUpWithEmail } = useAuth();
@@ -40,16 +50,15 @@ export default function SignupPage() {
       return;
     }
 
-
     setIsLoading(true);
 
     try {
-      const { error } = await signUpWithEmail(fullName, email, password);
+      const { error } = await signUpWithEmail(fullName, email, password, role);
       if (error) {
         setError(error);
         return;
       }
-      
+
       // Redirect to verify page with email
       router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
@@ -65,14 +74,11 @@ export default function SignupPage() {
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      exit="exit"
-    >
+      exit="exit">
       <Card className="w-full max-w-md" animate>
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Create an account</CardTitle>
-          <CardDescription className="text-center">
-            Sign up to start shopping
-          </CardDescription>
+          <CardDescription className="text-center">Sign up to start shopping</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -90,6 +96,19 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
+              <label htmlFor="role" className="text-sm font-medium">
+                I am a
+              </label>
+              <select
+                id="role"
+                className="w-full h-10 rounded-md border px-3 text-sm bg-background"
+                value={role}
+                onChange={(e) => setRole(e.target.value as any)}>
+                <option value="customer">Customer</option>
+                <option value="organization">Organization</option>
+              </select>
+            </div>
+            <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 Email
               </label>
@@ -104,7 +123,7 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2 relative">
-              <label htmlFor="password"className="text-sm font-medium">
+              <label htmlFor="password" className="text-sm font-medium">
                 Password
               </label>
               <Input
@@ -119,8 +138,7 @@ export default function SignupPage() {
               <button
                 type="button"
                 className="absolute right-3 top-[2.1rem] text-muted-foreground"
-                onClick={() => setShowPassword(!showPassword)}
-              >
+                onClick={() => setShowPassword(!showPassword)}>
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>

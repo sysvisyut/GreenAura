@@ -13,13 +13,19 @@ type User = {
   email?: string;
   full_name?: string;
   profile_picture_url?: string;
+  role?: "customer" | "organization";
 };
 
 type AuthContextType = {
   user: User | null;
   profile: any | null;
   isLoading: boolean;
-  signUpWithEmail: (fullName: string, email: string, password: string) => Promise<{ error: string | null }>;
+  signUpWithEmail: (
+    fullName: string,
+    email: string,
+    password: string,
+    role: "customer" | "organization"
+  ) => Promise<{ error: string | null }>;
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
   resendOtp: (email: string) => Promise<{ error: string | null }>;
@@ -39,24 +45,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // Check current session
-        const { data: { session } } = await supabase.auth.getSession();
-        
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
         if (session?.user) {
+          const { data: profileData } = await supabase
+            .from("users")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
           setUser({
             id: session.user.id,
-            email: session.user.email,
+            email: session.user.email ?? undefined,
+            full_name: profileData?.full_name ?? undefined,
+            role: (profileData?.role as any) ?? undefined,
           });
-          
-          // Fetch user profile data
-          const { data: profileData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-            
-          if (profileData) {
-            setProfile(profileData);
+          setProfile(profileData ?? null);
+
+          // Auto-create organization for organization role
+          if ((profileData as any)?.role === "organization") {
+            try {
+              const existing = await ApiService.getOrganizationByOwner(session.user.id);
+              if (!existing) {
+                await supabase.from("organizations").insert({
+                  name: profileData?.full_name || session.user.email || "My Organization",
+                  owner_id: session.user.id,
+                  is_active: true,
+                });
+              }
+            } catch (e) {
+              log.warn("Auto-create organization skipped", e);
+            }
           }
         }
       } catch (error) {
@@ -68,43 +89,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     fetchUser();
 
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        log.debug("Auth state changed", { event });
-        
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-          });
-          
-          // Fetch user profile data
-          const { data: profileData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
-            
-          if (profileData) {
-            setProfile(profileData);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      log.debug("Auth state changed", { event });
+
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        setUser({
+          id: session.user.id,
+          email: session.user.email ?? undefined,
+          full_name: profileData?.full_name ?? undefined,
+          role: (profileData?.role as any) ?? undefined,
+        });
+        setProfile(profileData ?? null);
+
+        if ((profileData as any)?.role === "organization") {
+          try {
+            const existing = await ApiService.getOrganizationByOwner(session.user.id);
+            if (!existing) {
+              await supabase.from("organizations").insert({
+                name: profileData?.full_name || session.user.email || "My Organization",
+                owner_id: session.user.id,
+                is_active: true,
+              });
+            }
+          } catch (e) {
+            log.warn("Auto-create organization skipped", e);
           }
-        } else {
-          setUser(null);
-          setProfile(null);
         }
-        
-        setIsLoading(false);
+      } else {
+        setUser(null);
+        setProfile(null);
       }
-    );
+
+      setIsLoading(false);
+    });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  const signUpWithEmail = async (fullName: string, email: string, password: string) => {
-    const { error } = await ApiService.signUpWithEmail(fullName, email, password);
+  const signUpWithEmail = async (
+    fullName: string,
+    email: string,
+    password: string,
+    role: "customer" | "organization"
+  ) => {
+    const { error } = await ApiService.signUpWithEmail(fullName, email, password, role);
     if (error) {
       log.error("Error signing up", error);
       return { error };
@@ -146,39 +184,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = async (data: any) => {
     if (!user) return;
-    
+
     try {
-      // Check if profile exists
       const { data: existingProfile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
+        .from("users")
+        .select("*")
+        .eq("id", user.id)
         .maybeSingle();
-      
+
       if (existingProfile) {
-        // Update existing profile
-        const { error } = await supabase
-          .from('users')
-          .update(data)
-          .eq('id', user.id);
-          
+        const { error } = await supabase.from("users").update(data).eq("id", user.id);
         if (error) throw error;
       } else {
-        // Create new profile
-        const { error } = await supabase
-          .from('users')
-          .insert([{ id: user.id, ...data }]);
-          
+        const { error } = await supabase.from("users").insert([{ id: user.id, ...data }]);
         if (error) throw error;
       }
-      
-      // Refresh profile data
+
       const { data: updatedProfile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
+        .from("users")
+        .select("*")
+        .eq("id", user.id)
         .maybeSingle();
-        
+
       setProfile(updatedProfile);
     } catch (error) {
       log.error("Error updating profile", error);
@@ -198,11 +225,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateProfile,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
