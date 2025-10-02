@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/context/auth-context";
 
 // Sample data
 const FEATURED_PRODUCTS = [
@@ -100,6 +101,7 @@ const FARMS = [
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const { user } = useAuth();
 
   // Load featured from Supabase
   useEffect(() => {
@@ -123,6 +125,10 @@ export default function HomePage() {
     // In a real app, this would call your cart context/API
     console.log("Adding to cart:", productId);
   };
+
+  const shopNowHref = user
+    ? (user.role === "organization" ? "/owner" : "/products")
+    : "/login";
 
   return (
     <motion.div
@@ -153,7 +159,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Button size="lg" asChild>
-                <Link href="/categories">Shop Now</Link>
+                <Link href={shopNowHref}>Shop Now</Link>
               </Button>
               <Button
                 size="lg"

@@ -3,7 +3,6 @@
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { Suspense } from "react";
-import { Toaster } from "sonner";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
@@ -68,7 +67,6 @@ export default function OwnerLayout({
         </div>
       </main>
       <Footer />
-      <Toaster position="top-center" richColors />
     </>
   );
 }

@@ -1,4 +1,3 @@
-import { Toaster } from "sonner";
 
 export default function AuthLayout({
   children,
@@ -10,7 +9,6 @@ export default function AuthLayout({
       <main className="min-h-screen bg-gradient-to-b from-background to-muted/30">
         {children}
       </main>
-      <Toaster position="top-center" richColors />
     </>
   );
 }

@@ -5,6 +5,7 @@ import { createLogger } from "@/lib/logger";
 import { toast } from "sonner";
 import { ApiService } from "@/services/apiService";
 import { useAuth } from "@/context/auth-context";
+import { useRouter } from "next/navigation";
 
 const log = createLogger("CartContext");
 
@@ -40,6 +41,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const router = useRouter();
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -124,6 +126,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Add item to cart
   const addItem = (product: any, quantity: number) => {
+    // Require authentication to add items to cart
+    if (!user) {
+      toast("Please sign in to add items to cart");
+      router.push("/login");
+      return;
+    }
     setItems((prevItems) => {
       // Check if item already exists in cart
       const existingItemIndex = prevItems.findIndex((item) => item.product_id === product.id);
@@ -139,16 +147,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         toast.success("Cart updated", {
           description: `${product.name} quantity updated in your cart.`,
         });
-        // If logged in, sync to server
+        // Sync to server
         (async () => {
           try {
-            if (user) {
-              await ApiService.addToCart(
-                user.id,
-                product.id,
-                updatedItems[existingItemIndex].quantity
-              );
-            }
+            await ApiService.addToCart(
+              user.id,
+              product.id,
+              updatedItems[existingItemIndex].quantity
+            );
           } catch (e) {
             log.error("addItem sync error", e);
           }
@@ -172,12 +178,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         toast.success("Added to cart", {
           description: `${product.name} has been added to your cart.`,
         });
-        // If logged in, sync to server
+        // Sync to server
         (async () => {
           try {
-            if (user) {
-              await ApiService.addToCart(user.id, product.id, quantity);
-            }
+            await ApiService.addToCart(user.id, product.id, quantity);
           } catch (e) {
             log.error("addItem sync error", e);
           }

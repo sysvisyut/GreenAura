@@ -4,7 +4,7 @@ import { useAuth } from "@/context/auth-context";
 import { useCart } from "@/context/cart-context";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { ShoppingCart, User, Menu, X, Search, Home } from "lucide-react";
+import { ShoppingCart, User, Menu, X, Search, Home, LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -33,6 +33,7 @@ export function Navbar() {
 
   const navItems = [
     { href: "/", label: "Home", icon: Home },
+    { href: "/products", label: "Products", icon: LayoutGrid },
     { href: "/categories", label: "Categories", icon: Search },
     { href: "/cart", label: "Cart", icon: ShoppingCart, badge: itemCount > 0 ? itemCount : null },
     { href: "/profile", label: "Profile", icon: User },

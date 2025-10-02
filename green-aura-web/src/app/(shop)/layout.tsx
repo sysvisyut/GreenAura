@@ -1,7 +1,6 @@
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { Suspense } from "react";
-import { Toaster } from "sonner";
 
 export default function ShopLayout({
   children,
@@ -17,7 +16,6 @@ export default function ShopLayout({
         </Suspense>
       </main>
       <Footer />
-      <Toaster position="top-center" richColors />
     </>
   );
 }

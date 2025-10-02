@@ -12,7 +12,7 @@ import { useState, useEffect } from "react";
 import { ApiService } from "@/services/apiService";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Save, MapPin, User, Phone, Mail, Trash2, Edit, LogOut } from "lucide-react";
+import { Plus, Save, MapPin, User, Phone, Mail, Trash2, Edit, LogOut, Package } from "lucide-react";
 
 export default function ProfilePage() {
   const { user, profile, signOut, isLoading, updateProfile } = useAuth();
@@ -172,6 +172,13 @@ export default function ProfilePage() {
             <TabsTrigger value="addresses" className="flex items-center gap-2">
               <MapPin size={16} />
               <span>Addresses</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="orders"
+              className="flex items-center gap-2"
+              onClick={() => router.push("/orders")}>
+              <Package size={16} />
+              <span>Order History</span>
             </TabsTrigger>
           </TabsList>
 

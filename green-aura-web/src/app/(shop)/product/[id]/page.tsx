@@ -197,10 +197,11 @@ export default function ProductPage() {
       </div>
 
       {/* Related Products */}
-      <div className="border-t pt-12">
-        <h2 className="text-2xl font-bold mb-6">You might also like</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {product.related_products.map((relatedProduct: any) => (
+      {related.length > 0 && (
+        <div className="border-t pt-12">
+          <h2 className="text-2xl font-bold mb-6">You might also like</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {(related ?? []).map((relatedProduct: any) => (
             <Link
               key={relatedProduct.id}
               href={`/product/${relatedProduct.id}`}
@@ -231,8 +232,9 @@ export default function ProductPage() {
               </div>
             </Link>
           ))}
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }
