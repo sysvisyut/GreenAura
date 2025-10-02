@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -60,11 +61,11 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Define protected routes
-  const protectedRoutes = ["/", "/profile", "/cart", "/checkout", "/orders"];
+  // Define protected route prefixes
+  const protectedPrefixes = ["/profile", "/cart", "/checkout", "/orders", "/owner", "/addresses"];
 
   // If the user is not logged in and is trying to access a protected route, redirect to login
-  if (!session && protectedRoutes.includes(pathname)) {
+  if (!session && protectedPrefixes.some((p) => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

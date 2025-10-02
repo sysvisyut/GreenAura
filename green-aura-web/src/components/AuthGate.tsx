@@ -10,7 +10,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) router.replace("/auth");
+    if (!user) router.replace("/login");
   }, [user, loading, router]);
 
   if (loading) return <div style={{ padding: 16 }}>Checking session...</div>;
