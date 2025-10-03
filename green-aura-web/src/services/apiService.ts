@@ -648,4 +648,29 @@ export const ApiService = {
     }
     return data;
   },
+
+  // Storage
+  async uploadToBucket(bucket: string, file: File, pathPrefix?: string): Promise<string> {
+    const supabase = getSupabaseClient();
+    const originalName = file.name || "upload";
+    const extension = originalName.includes(".") ? originalName.split(".").pop() || "jpg" : "jpg";
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
+    const path = pathPrefix ? `${pathPrefix}/${uniqueName}` : uniqueName;
+
+    log.info("uploadToBucket: start", { bucket, path });
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+    if (error) {
+      log.error("uploadToBucket: error", error);
+      throw error;
+    }
+
+    const { data: publicUrlData } = supabase.storage.from(bucket).getPublicUrl(data.path);
+    return publicUrlData.publicUrl;
+  },
+
+  async uploadProductImage(file: File, organizationId: string): Promise<string> {
+    return await this.uploadToBucket("product-images", file, organizationId);
+  },
 };

@@ -31,6 +31,8 @@ export default function NewProductPage() {
     category: "",
     image_url: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -73,8 +75,20 @@ export default function NewProductPage() {
 
     setIsSaving(true);
     try {
+      let imageUrl = form.image_url?.trim() || "";
+      if (!imageUrl && imageFile) {
+        try {
+          imageUrl = await ApiService.uploadProductImage(imageFile, orgId);
+        } catch (uploadErr: any) {
+          console.error("Image upload failed", uploadErr);
+          toast.error("Image upload failed. Please try again.");
+          setIsSaving(false);
+          return;
+        }
+      }
       await ApiService.createProduct({
         ...form,
+        image_url: imageUrl || null,
         organization_id: orgId,
         is_available: true,
       });
@@ -207,15 +221,36 @@ export default function NewProductPage() {
 
                 <div className="space-y-2">
                   <label htmlFor="image" className="text-sm font-medium">
-                    Image URL
+                    Product Image
                   </label>
-                  <Input
-                    id="image"
-                    type="url"
-                    value={form.image_url}
-                    onChange={(e) => handleChange("image_url", e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setImageFile(file || null);
+                        if (file) {
+                          const url = URL.createObjectURL(file);
+                          setImagePreview(url);
+                        } else {
+                          setImagePreview(null);
+                        }
+                      }}
+                    />
+                    {imagePreview && (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-32 h-32 object-cover rounded-md border"
+                      />
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Optional. If provided, the file will be uploaded to storage and the public URL
+                      saved.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="space-y-2 md:col-span-2">

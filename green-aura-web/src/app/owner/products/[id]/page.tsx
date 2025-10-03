@@ -34,6 +34,8 @@ export default function EditProductPage() {
     image_url: "",
     is_available: true,
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!productId) return;
@@ -88,7 +90,22 @@ export default function EditProductPage() {
 
     setIsSaving(true);
     try {
-      await ApiService.updateProduct(productId, form as any);
+      let imageUrl = form.image_url?.trim() || "";
+      if (imageFile) {
+        try {
+          // Load owner orgId to place image under org folder
+          const org = await ApiService.getOrganizationByOwner(user!.id);
+          const orgId = org?.id || "misc";
+          imageUrl = await ApiService.uploadProductImage(imageFile, orgId);
+        } catch (uploadErr: any) {
+          console.error("Image upload failed", uploadErr);
+          toast.error("Image upload failed. Please try again.");
+          setIsSaving(false);
+          return;
+        }
+      }
+
+      await ApiService.updateProduct(productId, { ...form, image_url: imageUrl || null } as any);
       toast.success("Product updated successfully");
       router.push("/owner/products");
     } catch (error) {
@@ -222,15 +239,36 @@ export default function EditProductPage() {
 
                   <div className="space-y-2">
                     <label htmlFor="image" className="text-sm font-medium">
-                      Image URL
+                      Product Image
                     </label>
-                    <Input
-                      id="image"
-                      type="url"
-                      value={form.image_url || ""}
-                      onChange={(e) => handleChange("image_url", e.target.value)}
-                      placeholder="https://example.com/image.jpg"
-                    />
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        id="image"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          setImageFile(file || null);
+                          if (file) {
+                            const url = URL.createObjectURL(file);
+                            setImagePreview(url);
+                          } else {
+                            setImagePreview(null);
+                          }
+                        }}
+                      />
+                      {(imagePreview || form.image_url) && (
+                        <img
+                          src={imagePreview || form.image_url}
+                          alt="Preview"
+                          className="w-32 h-32 object-cover rounded-md border"
+                        />
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Optional. If selected, the file will be uploaded to storage and the public
+                        URL saved.
+                      </p>
+                    </div>
                   </div>
 
                   <div className="space-y-2 md:col-span-2">
