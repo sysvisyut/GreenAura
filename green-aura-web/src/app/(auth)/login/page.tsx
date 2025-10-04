@@ -146,9 +146,6 @@ export default function LoginPage() {
               Sign up
             </Link>
           </p>
-          <Button variant="outline" onClick={handleSkip}>
-            Skip for now
-          </Button>
         </CardFooter>
       </Card>
     </motion.div>
