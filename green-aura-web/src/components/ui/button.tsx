@@ -35,7 +35,15 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends Omit<
+      React.ButtonHTMLAttributes<HTMLButtonElement>,
+      | "onAnimationStart"
+      | "onAnimationEnd"
+      | "onAnimationIteration"
+      | "onDrag"
+      | "onDragStart"
+      | "onDragEnd"
+    >,
     VariantProps<typeof buttonVariants> {
   isLoading?: boolean;
   asChild?: boolean;

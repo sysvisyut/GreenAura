@@ -2,38 +2,43 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { fadeIn } from "@/lib/animations";
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+type StaticCardProps = React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode;
-  animate?: boolean;
-}
+  animate?: false;
+};
 
-export function Card({
-  className,
-  children,
-  animate = false,
-  ...props
-}: CardProps) {
-  const Component = animate ? motion.div : "div";
-  const animationProps = animate
-    ? {
-        variants: fadeIn,
-        initial: "hidden",
-        animate: "visible",
-        exit: "exit",
-      }
-    : {};
+type AnimatedCardProps = Omit<import("framer-motion").HTMLMotionProps<"div">, "ref"> & {
+  children: React.ReactNode;
+  animate: true;
+};
 
+type CardProps = StaticCardProps | AnimatedCardProps;
+
+export function Card({ className, children, animate = false, ...props }: CardProps) {
+  if (animate) {
+    const motionProps = props as AnimatedCardProps;
+    const { animate: _isAnimated, ...restMotionProps } = motionProps as any;
+    return (
+      <motion.div
+        className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
+        variants={fadeIn}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        {...restMotionProps}>
+        {children}
+      </motion.div>
+    );
+  }
+
+  const divProps = props as StaticCardProps;
+  const { animate: _isAnimated, ...restDivProps } = divProps as any;
   return (
-    <Component
-      className={cn(
-        "rounded-lg border bg-card text-card-foreground shadow-sm",
-        className
-      )}
-      {...animationProps}
-      {...props}
-    >
+    <div
+      className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
+      {...restDivProps}>
       {children}
-    </Component>
+    </div>
   );
 }
 
@@ -43,10 +48,7 @@ interface CardHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardHeader({ className, children, ...props }: CardHeaderProps) {
   return (
-    <div
-      className={cn("flex flex-col space-y-1.5 p-6", className)}
-      {...props}
-    >
+    <div className={cn("flex flex-col space-y-1.5 p-6", className)} {...props}>
       {children}
     </div>
   );
@@ -58,13 +60,7 @@ interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
 
 export function CardTitle({ className, children, ...props }: CardTitleProps) {
   return (
-    <h3
-      className={cn(
-        "text-2xl font-semibold leading-none tracking-tight",
-        className
-      )}
-      {...props}
-    >
+    <h3 className={cn("text-2xl font-semibold leading-none tracking-tight", className)} {...props}>
       {children}
     </h3>
   );
@@ -74,16 +70,9 @@ interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement
   children: React.ReactNode;
 }
 
-export function CardDescription({
-  className,
-  children,
-  ...props
-}: CardDescriptionProps) {
+export function CardDescription({ className, children, ...props }: CardDescriptionProps) {
   return (
-    <p
-      className={cn("text-sm text-muted-foreground", className)}
-      {...props}
-    >
+    <p className={cn("text-sm text-muted-foreground", className)} {...props}>
       {children}
     </p>
   );
@@ -107,10 +96,7 @@ interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardFooter({ className, children, ...props }: CardFooterProps) {
   return (
-    <div
-      className={cn("flex items-center p-6 pt-0", className)}
-      {...props}
-    >
+    <div className={cn("flex items-center p-6 pt-0", className)} {...props}>
       {children}
     </div>
   );
