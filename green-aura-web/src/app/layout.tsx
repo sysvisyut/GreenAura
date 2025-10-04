@@ -31,9 +31,7 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
   // Optional: fetch session server-side if needed by children/layout
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  await supabase.auth.getSession();
 
   return (
     <html lang="en" className="scroll-smooth">

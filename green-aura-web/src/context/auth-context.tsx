@@ -5,6 +5,7 @@ import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { createLogger } from "@/lib/logger";
 import { ApiService } from "@/services/apiService";
+import { TablesInsert, TablesUpdate } from "@/types/supabase";
 
 const log = createLogger("AuthContext");
 
@@ -36,7 +37,7 @@ type AuthContextType = {
   verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
   resendOtp: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (data: any) => Promise<void>;
+  updateProfile: (data: Partial<NonNullable<AuthContextType["profile"]>>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -77,14 +78,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .maybeSingle();
           log.info("fetchUser: loaded profile", {
             hasProfile: !!profileData,
-            role: (profileData as any)?.role,
+            role: (profileData as { role?: "customer" | "organization" } | null)?.role,
           });
 
           setUser({
             id: session.user.id,
             email: session.user.email ?? undefined,
             full_name: profileData?.full_name ?? undefined,
-            role: (profileData?.role as any) ?? undefined,
+            role: (profileData?.role as "customer" | "organization" | undefined) ?? undefined,
           });
           setProfile(profileData ?? null);
 
@@ -133,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: session.user.id,
           email: session.user.email ?? undefined,
           full_name: profileData?.full_name ?? undefined,
-          role: (profileData?.role as any) ?? undefined,
+          role: (profileData?.role as "customer" | "organization" | undefined) ?? undefined,
         });
         setProfile(profileData ?? null);
 
@@ -166,7 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase, isLoading]);
 
   const signUpWithEmail = async (
     fullName: string,
@@ -227,11 +228,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (existingProfile) {
         const { error } = await supabase
           .from("users")
-          .update(data as any)
+          .update(data as TablesUpdate<"users">)
           .eq("id", user.id);
-        if (error) throw error;
+        if (error) throw error; 
       } else {
-        const { error } = await supabase.from("users").insert([{ id: user.id, ...data } as any]);
+        const { error } = await supabase.from("users").insert([{ id: user.id, ...data } as TablesInsert<"users">]);
         if (error) throw error;
       }
 

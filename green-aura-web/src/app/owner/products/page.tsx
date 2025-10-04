@@ -14,7 +14,7 @@ import { Plus, Search, Edit, Trash2, AlertCircle } from "lucide-react";
 
 export default function OwnerProductsPage() {
   const { user } = useAuth();
-  const [orgId, setOrgId] = useState<string | null>(null);
+  // const [orgId, setOrgId] = useState<string | null>(null);
   type Product = {
     id: string;
     name: string;
@@ -35,7 +35,7 @@ export default function OwnerProductsPage() {
       try {
         const org = await ApiService.getOrganizationByOwner(user.id);
         if (org) {
-          setOrgId(org.id);
+          // setOrgId(org.id);
           const prods = await ApiService.getProductsByOrganization(org.id);
           setProducts(prods ?? []);
         }

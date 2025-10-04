@@ -6,7 +6,7 @@ import { ApiService } from "@/services/apiService";
 import { AuthGate } from "@/components/AuthGate";
 import { motion } from "framer-motion";
 import { pageTransition } from "@/lib/animations";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatDate, formatPrice } from "@/lib/utils";
@@ -29,7 +29,6 @@ const statusColors = {
 
 export default function OwnerOrdersPage() {
   const { user } = useAuth();
-  const [orgId, setOrgId] = useState<string | null>(null);
   const [orders, setOrders] = useState<
     Array<{
       id: string;
@@ -60,7 +59,6 @@ export default function OwnerOrdersPage() {
       try {
         const org = await ApiService.getOrganizationByOwner(user.id);
         if (org) {
-          setOrgId(org.id);
           const ordersData = await ApiService.getOrdersForOrganization(org.id);
           setOrders(ordersData ?? []);
         }

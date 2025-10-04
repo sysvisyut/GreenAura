@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { createLogger } from "@/lib/logger";
 import { toast } from "sonner";
 import { ApiService } from "@/services/apiService";

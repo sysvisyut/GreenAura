@@ -9,7 +9,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/context/auth-context";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 
@@ -111,7 +110,7 @@ export default function HomePage() {
     category?: string | null;
   };
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
-  const { user } = useAuth();
+  // Auth is not used on this page currently
 
   // Load featured from Supabase
   useEffect(() => {

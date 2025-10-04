@@ -41,7 +41,7 @@ export default function LoginPage() {
     try {
       document.cookie = `ga_skip_auth=true; path=/; max-age=${60 * 10}`; // 10 minutes
       router.push("/");
-    } catch (e) {
+    } catch {
       // no-op
     }
   };

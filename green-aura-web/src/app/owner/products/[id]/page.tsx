@@ -97,7 +97,7 @@ export default function EditProductPage() {
           const org = await ApiService.getOrganizationByOwner(user!.id);
           const orgId = org?.id || "misc";
           imageUrl = await ApiService.uploadProductImage(imageFile, orgId);
-        } catch (uploadErr: any) {
+        } catch (uploadErr) {
           console.error("Image upload failed", uploadErr);
           toast.error("Image upload failed. Please try again.");
           setIsSaving(false);
@@ -258,11 +258,14 @@ export default function EditProductPage() {
                         }}
                       />
                       {(imagePreview || form.image_url) && (
-                        <img
-                          src={imagePreview || form.image_url}
-                          alt="Preview"
-                          className="w-32 h-32 object-cover rounded-md border"
-                        />
+                        <div className="relative w-32 h-32">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={imagePreview || form.image_url}
+                            alt="Preview"
+                            className="w-32 h-32 object-cover rounded-md border"
+                          />
+                        </div>
                       )}
                       <p className="text-xs text-muted-foreground">
                         Optional. If selected, the file will be uploaded to storage and the public

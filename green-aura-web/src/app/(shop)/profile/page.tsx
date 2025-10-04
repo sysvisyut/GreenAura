@@ -24,7 +24,15 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
 
   // Address state
-  const [addresses, setAddresses] = useState<any[]>([]);
+  type Address = {
+    id: string;
+    address_line_1: string;
+    city: string;
+    pincode: string;
+    landmark?: string | null;
+    address_type?: string | null;
+  };
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressForm, setAddressForm] = useState({
@@ -120,7 +128,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleEditAddress = (address: any) => {
+  const handleEditAddress = (address: Address) => {
     setAddressForm({
       address_line_1: address.address_line_1 || "",
       city: address.city || "",

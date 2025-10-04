@@ -20,19 +20,15 @@ export function createLogger(namespace: string) {
   return {
     debug: (message: unknown, extra?: unknown) => {
       if (!isDebugEnabled()) return;
-      // eslint-disable-next-line no-console
       console.debug(...formatMessage("debug", namespace, message, extra));
     },
     info: (message: unknown, extra?: unknown) => {
-      // eslint-disable-next-line no-console
       console.info(...formatMessage("info", namespace, message, extra));
     },
     warn: (message: unknown, extra?: unknown) => {
-      // eslint-disable-next-line no-console
       console.warn(...formatMessage("warn", namespace, message, extra));
     },
     error: (message: unknown, extra?: unknown) => {
-      // eslint-disable-next-line no-console
       console.error(...formatMessage("error", namespace, message, extra));
     },
   } as const;

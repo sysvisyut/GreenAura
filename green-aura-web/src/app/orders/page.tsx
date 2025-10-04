@@ -7,19 +7,11 @@ import { useAuth } from "@/context/auth-context";
 import { AuthGate } from "@/components/AuthGate";
 import { motion } from "framer-motion";
 import { pageTransition } from "@/lib/animations";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatPrice } from "@/lib/utils";
-import {
-  Package,
-  ShoppingBag,
-  Clock,
-  CheckCircle2,
-  Truck,
-  ArrowRight,
-  AlertCircle,
-} from "lucide-react";
+import { Package, ShoppingBag, Clock, CheckCircle2, Truck, ArrowRight } from "lucide-react";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("OrdersPage");
@@ -43,7 +35,8 @@ const statusColors: Record<
 
 export default function OrdersPage() {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  type Order = { id: string; status: string; order_date: string; total_amount: number };
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
