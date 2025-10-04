@@ -43,11 +43,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = getSupabaseClient();
 
   useEffect(() => {
+    log.info("AuthProvider mounted - initializing session");
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        log.warn("AuthProvider timeout fallback: forcing isLoading=false after 3s");
+        setIsLoading(false);
+      }
+    }, 3000);
+
     const fetchUser = async () => {
       try {
+        const start = Date.now();
         const {
           data: { session },
         } = await supabase.auth.getSession();
+        log.info("fetchUser: getSession result", {
+          hasSession: !!session,
+          userId: session?.user?.id,
+          ms: Date.now() - start,
+        });
 
         if (session?.user) {
           const { data: profileData } = await supabase
@@ -55,6 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .select("*")
             .eq("id", session.user.id)
             .maybeSingle();
+          log.info("fetchUser: loaded profile", {
+            hasProfile: !!profileData,
+            role: (profileData as any)?.role,
+          });
 
           setUser({
             id: session.user.id,
@@ -83,7 +101,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         log.error("Error fetching user", error);
       } finally {
+        clearTimeout(timeoutId);
         setIsLoading(false);
+        log.info("AuthProvider initial load complete");
       }
     };
 
@@ -92,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      log.debug("Auth state changed", { event });
+      log.info("onAuthStateChange", { event, userId: session?.user?.id });
 
       if (session?.user) {
         const { data: profileData } = await supabase
@@ -128,7 +148,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null);
       }
 
+      clearTimeout(timeoutId);
       setIsLoading(false);
+      log.info("AuthProvider auth state handled; isLoading=false");
     });
 
     return () => {

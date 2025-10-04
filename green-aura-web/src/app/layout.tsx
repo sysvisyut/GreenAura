@@ -4,6 +4,8 @@ import "./globals.css";
 import { AuthProvider } from "@/context/auth-context";
 import { CartProvider } from "@/context/cart-context";
 import { Toaster } from "sonner";
+import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,18 +22,24 @@ export const metadata: Metadata = {
   description: "Hyperlocal farm delivery service connecting you with local farmers",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Initialize Supabase with the server cookie store (Server Component safe)
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  // Optional: fetch session server-side if needed by children/layout
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AuthProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
+          <CartProvider>{children}</CartProvider>
         </AuthProvider>
         <Toaster position="top-center" richColors />
       </body>

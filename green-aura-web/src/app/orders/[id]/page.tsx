@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { ApiService } from "@/services/apiService";
 import { AuthGate } from "@/components/AuthGate";
 import { motion } from "framer-motion";
@@ -13,6 +13,10 @@ import { formatDate, formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Package, ShoppingBag, Truck, Clock, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
+import { createLogger } from "@/lib/logger";
+import type { Tables } from "@/types/supabase";
+
+const log = createLogger("OrderDetailsPage");
 
 const statusIcons: Record<string, any> = {
   pending: Clock,
@@ -33,25 +37,34 @@ const statusColors: Record<
 
 export default function OrderDetailsPage() {
   const params = useParams();
-  const router = useRouter();
   const orderId = params?.id as string;
-  const [order, setOrder] = useState<any | null>(null);
-  const [items, setItems] = useState<any[]>([]);
+  const [order, setOrder] = useState<
+    (Tables<"orders"> & { user_addresses?: Tables<"user_addresses"> | null }) | null
+  >(null);
+  const [items, setItems] = useState<
+    Array<Tables<"order_items"> & { products?: Tables<"products"> | null }>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!orderId) return;
 
     const fetchOrderDetails = async () => {
+      log.info("fetchOrderDetails:start", { orderId });
       setIsLoading(true);
       try {
         const data = await ApiService.getOrderDetails(orderId);
+        log.info("fetchOrderDetails:success", {
+          hasOrder: !!data?.order,
+          items: (data?.items ?? []).length,
+        });
         setOrder(data.order);
         setItems(data.items ?? []);
       } catch (error) {
-        console.error("Failed to load order details", error);
+        log.error("fetchOrderDetails:error", error);
       } finally {
         setIsLoading(false);
+        log.info("fetchOrderDetails:end");
       }
     };
 
@@ -155,7 +168,7 @@ export default function OrderDetailsPage() {
               </div>
 
               {/* Status Steps */}
-              {statusSteps.map((step, index) => (
+              {statusSteps.map((step) => (
                 <div key={step.id} className="flex flex-col items-center relative z-10">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center ${
