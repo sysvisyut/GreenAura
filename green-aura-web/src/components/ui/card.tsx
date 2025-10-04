@@ -14,10 +14,9 @@ type AnimatedCardProps = Omit<import("framer-motion").HTMLMotionProps<"div">, "r
 
 type CardProps = StaticCardProps | AnimatedCardProps;
 
-export function Card({ className, children, animate = false, ...props }: CardProps) {
-  if (animate) {
-    const motionProps = props as AnimatedCardProps;
-    const { animate: _isAnimated, ...restMotionProps } = motionProps as any;
+export function Card(props: CardProps) {
+  if (props.animate) {
+    const { className, children, animate: _ignore, ...restMotionProps } = props;
     return (
       <motion.div
         className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
@@ -31,8 +30,7 @@ export function Card({ className, children, animate = false, ...props }: CardPro
     );
   }
 
-  const divProps = props as StaticCardProps;
-  const { animate: _isAnimated, ...restDivProps } = divProps as any;
+  const { className, children, animate: _ignore, ...restDivProps } = props;
   return (
     <div
       className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
