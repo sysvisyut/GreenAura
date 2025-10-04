@@ -61,8 +61,10 @@ export default function SignupPage() {
 
       // Redirect to verify page with email
       router.push(`/verify?email=${encodeURIComponent(email)}`);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +105,7 @@ export default function SignupPage() {
                 id="role"
                 className="w-full h-10 rounded-md border px-3 text-sm bg-background"
                 value={role}
-                onChange={(e) => setRole(e.target.value as any)}>
+                onChange={(e) => setRole(e.target.value as "customer" | "organization")}>
                 <option value="customer">Customer</option>
                 <option value="organization">Organization</option>
               </select>

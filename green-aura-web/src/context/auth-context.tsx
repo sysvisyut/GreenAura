@@ -18,7 +18,13 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  profile: any | null;
+  profile: {
+    id?: string;
+    full_name?: string | null;
+    role?: "customer" | "organization";
+    phone_number?: string | null;
+    profile_picture_url?: string | null;
+  } | null;
   isLoading: boolean;
   signUpWithEmail: (
     fullName: string,
@@ -37,7 +43,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const supabase = getSupabaseClient();
@@ -83,7 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(profileData ?? null);
 
           // Auto-create organization for organization role
-          if ((profileData as any)?.role === "organization") {
+          if (
+            (profileData as { role?: "customer" | "organization" } | null)?.role === "organization"
+          ) {
             try {
               const existing = await ApiService.getOrganizationByOwner(session.user.id);
               if (!existing) {
@@ -129,7 +137,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setProfile(profileData ?? null);
 
-        if ((profileData as any)?.role === "organization") {
+        if (
+          (profileData as { role?: "customer" | "organization" } | null)?.role === "organization"
+        ) {
           try {
             const existing = await ApiService.getOrganizationByOwner(session.user.id);
             if (!existing) {
@@ -204,7 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/login");
   };
 
-  const updateProfile = async (data: any) => {
+  const updateProfile = async (data: Partial<NonNullable<AuthContextType["profile"]>>) => {
     if (!user) return;
 
     try {
@@ -215,10 +225,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (existingProfile) {
-        const { error } = await supabase.from("users").update(data).eq("id", user.id);
+        const { error } = await supabase
+          .from("users")
+          .update(data as any)
+          .eq("id", user.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("users").insert([{ id: user.id, ...data }]);
+        const { error } = await supabase.from("users").insert([{ id: user.id, ...data } as any]);
         if (error) throw error;
       }
 

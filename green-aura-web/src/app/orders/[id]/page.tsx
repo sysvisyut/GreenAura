@@ -18,7 +18,7 @@ import type { Tables } from "@/types/supabase";
 
 const log = createLogger("OrderDetailsPage");
 
-const statusIcons: Record<string, any> = {
+const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   confirmed: CheckCircle2,
   out_for_delivery: Truck,

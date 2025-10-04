@@ -20,8 +20,19 @@ export default function ProductPage() {
   const productId = params?.id as string;
   const { addItem } = useCart();
 
-  const [product, setProduct] = useState<any | null>(null);
-  const [related, setRelated] = useState<any[]>([]);
+  type Product = {
+    id: string;
+    name: string;
+    description?: string | null;
+    price: number;
+    unit: string;
+    stock_quantity: number;
+    category?: string | null;
+    image_url?: string | null;
+    organization_id?: string | null;
+  };
+  const [product, setProduct] = useState<Product | null>(null);
+  const [related, setRelated] = useState<Product[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -68,7 +79,7 @@ export default function ProductPage() {
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
         <p className="text-muted-foreground mb-8">
-          The product you're looking for doesn't exist or has been removed.
+          The product you&apos;re looking for doesn&apos;t exist or has been removed.
         </p>
         <Button asChild>
           <Link href="/products">Browse Products</Link>
@@ -201,37 +212,37 @@ export default function ProductPage() {
         <div className="border-t pt-12">
           <h2 className="text-2xl font-bold mb-6">You might also like</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {(related ?? []).map((relatedProduct: any) => (
-            <Link
-              key={relatedProduct.id}
-              href={`/product/${relatedProduct.id}`}
-              className="group rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow">
-              <div className="relative aspect-square bg-muted/30">
-                {relatedProduct.image_url ? (
-                  <Image
-                    src={relatedProduct.image_url}
-                    alt={relatedProduct.name}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    className="object-cover transition-transform group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center bg-muted/30 text-muted-foreground">
-                    No image
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="font-medium truncate">{relatedProduct.name}</h3>
-                <div className="flex items-baseline mt-1">
-                  <span className="font-semibold">{formatPrice(relatedProduct.price)}</span>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    / {relatedProduct.unit}
-                  </span>
+            {(related ?? []).map((relatedProduct) => (
+              <Link
+                key={relatedProduct.id}
+                href={`/product/${relatedProduct.id}`}
+                className="group rounded-lg border bg-card overflow-hidden hover:shadow-md transition-shadow">
+                <div className="relative aspect-square bg-muted/30">
+                  {relatedProduct.image_url ? (
+                    <Image
+                      src={relatedProduct.image_url}
+                      alt={relatedProduct.name}
+                      fill
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted/30 text-muted-foreground">
+                      No image
+                    </div>
+                  )}
                 </div>
-              </div>
-            </Link>
-          ))}
+                <div className="p-4">
+                  <h3 className="font-medium truncate">{relatedProduct.name}</h3>
+                  <div className="flex items-baseline mt-1">
+                    <span className="font-semibold">{formatPrice(relatedProduct.price)}</span>
+                    <span className="text-xs text-muted-foreground ml-1">
+                      / {relatedProduct.unit}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       )}

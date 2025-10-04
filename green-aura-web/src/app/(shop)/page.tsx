@@ -102,7 +102,15 @@ const FARMS = [
 
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  type Product = {
+    id: string;
+    name: string;
+    price: number;
+    unit: string;
+    image_url?: string | null;
+    category?: string | null;
+  };
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const { user } = useAuth();
 
   // Load featured from Supabase

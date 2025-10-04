@@ -50,8 +50,9 @@ export default function CheckoutPage() {
         const data = await ApiService.getUserAddresses(user.id);
         setAddresses(data ?? []);
         setSelectedAddress(data?.[0]?.id ?? null);
-      } catch (e: any) {
-        setError(e?.message ?? "Failed to load addresses");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Failed to load addresses";
+        setError(message);
         log.error("Checkout addresses error", e);
       } finally {
         setLoading(false);

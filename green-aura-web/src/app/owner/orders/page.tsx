@@ -13,7 +13,7 @@ import { formatDate, formatPrice } from "@/lib/utils";
 import { toast } from "sonner";
 import { AlertCircle, CheckCircle2, Clock, Package, Truck } from "lucide-react";
 
-const statusIcons = {
+const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   confirmed: CheckCircle2,
   out_for_delivery: Truck,
@@ -30,10 +30,28 @@ const statusColors = {
 export default function OwnerOrdersPage() {
   const { user } = useAuth();
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<
+    Array<{
+      id: string;
+      status: string;
+      order_date: string;
+      total_amount: number;
+      user_addresses?: { address_line_1?: string; city?: string; pincode?: string } | null;
+    }>
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const [orderItems, setOrderItems] = useState<Record<string, any[]>>({});
+  const [orderItems, setOrderItems] = useState<
+    Record<
+      string,
+      Array<{
+        id: string;
+        quantity: number;
+        price_at_order: number;
+        products?: { name?: string } | null;
+      }>
+    >
+  >({});
 
   useEffect(() => {
     if (!user) return;
@@ -86,7 +104,7 @@ export default function OwnerOrdersPage() {
   };
 
   const StatusIcon = ({ status }: { status: string }) => {
-    const IconComponent = (statusIcons as any)[status] || AlertCircle;
+    const IconComponent = statusIcons[status] || AlertCircle;
     return <IconComponent className="h-5 w-5" />;
   };
 

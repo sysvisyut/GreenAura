@@ -26,7 +26,16 @@ type CartContextType = {
   items: CartItem[];
   itemCount: number;
   subtotal: number;
-  addItem: (product: any, quantity: number) => void;
+  addItem: (
+    product: {
+      id: string;
+      name: string;
+      price: number;
+      unit: string;
+      image_url?: string | null;
+    },
+    quantity: number
+  ) => void;
   updateQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
   clearCart: () => void;
@@ -79,18 +88,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const serverItems = await ApiService.getCartItems(user.id);
         // Merge: if server has items, prefer server; otherwise push local up
         if (serverItems && serverItems.length > 0) {
-          const mapped: CartItem[] = serverItems.map((ci: any) => ({
-            id: ci.id,
-            product_id: ci.product_id,
-            quantity: ci.quantity,
-            product: {
-              id: ci.products.id,
-              name: ci.products.name,
-              price: ci.products.price,
-              unit: ci.products.unit,
-              image_url: ci.products.image_url ?? undefined,
-            },
-          }));
+          const mapped: CartItem[] = serverItems.map(
+            (ci: {
+              id: string;
+              product_id: string;
+              quantity: number;
+              products: {
+                id: string;
+                name: string;
+                price: number;
+                unit: string;
+                image_url?: string | null;
+              };
+            }) => ({
+              id: ci.id,
+              product_id: ci.product_id,
+              quantity: ci.quantity,
+              product: {
+                id: ci.products.id,
+                name: ci.products.name,
+                price: ci.products.price,
+                unit: ci.products.unit,
+                image_url: ci.products.image_url ?? undefined,
+              },
+            })
+          );
           setItems(mapped);
         } else {
           // Push local items up to server
@@ -99,18 +121,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             await ApiService.addToCart(user.id, it.product_id, it.quantity);
           }
           const refreshed = await ApiService.getCartItems(user.id);
-          const mapped: CartItem[] = (refreshed ?? []).map((ci: any) => ({
-            id: ci.id,
-            product_id: ci.product_id,
-            quantity: ci.quantity,
-            product: {
-              id: ci.products.id,
-              name: ci.products.name,
-              price: ci.products.price,
-              unit: ci.products.unit,
-              image_url: ci.products.image_url ?? undefined,
-            },
-          }));
+          const mapped: CartItem[] = (refreshed ?? []).map(
+            (ci: {
+              id: string;
+              product_id: string;
+              quantity: number;
+              products: {
+                id: string;
+                name: string;
+                price: number;
+                unit: string;
+                image_url?: string | null;
+              };
+            }) => ({
+              id: ci.id,
+              product_id: ci.product_id,
+              quantity: ci.quantity,
+              product: {
+                id: ci.products.id,
+                name: ci.products.name,
+                price: ci.products.price,
+                unit: ci.products.unit,
+                image_url: ci.products.image_url ?? undefined,
+              },
+            })
+          );
           setItems(mapped);
         }
       } catch (e) {
@@ -125,7 +160,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
 
   // Add item to cart
-  const addItem = (product: any, quantity: number) => {
+  const addItem = (
+    product: { id: string; name: string; price: number; unit: string; image_url?: string | null },
+    quantity: number
+  ) => {
     // Require authentication to add items to cart
     if (!user) {
       toast("Please sign in to add items to cart");
@@ -226,7 +264,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               // We don't know server cart_item id mapping here; fallback: set quantity=0 by deletion API when available
               const server = await ApiService.getCartItems(user.id);
               const match = (server ?? []).find(
-                (ci: any) => ci.product_id === itemToRemove.product_id
+                (ci: { product_id: string; id: string }) =>
+                  ci.product_id === itemToRemove.product_id
               );
               if (match) {
                 await ApiService.removeFromCart(match.id);

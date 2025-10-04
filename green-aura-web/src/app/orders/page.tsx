@@ -24,7 +24,7 @@ import { createLogger } from "@/lib/logger";
 
 const log = createLogger("OrdersPage");
 
-const statusIcons: Record<string, any> = {
+const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   confirmed: CheckCircle2,
   out_for_delivery: Truck,
@@ -101,7 +101,7 @@ export default function OrdersPage() {
               </div>
               <h3 className="text-lg font-medium mb-2">No orders yet</h3>
               <p className="text-muted-foreground mb-4">
-                You haven't placed any orders yet. Start shopping to see your orders here.
+                You haven&apos;t placed any orders yet. Start shopping to see your orders here.
               </p>
               <Button asChild>
                 <Link href="/products">Browse Products</Link>

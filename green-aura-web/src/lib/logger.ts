@@ -2,7 +2,10 @@ type LogLevel = "debug" | "info" | "warn" | "error";
 
 const isDebugEnabled = () => {
   if (typeof window !== "undefined") {
-    return (window as any).__DEBUG__ === true || process.env.NEXT_PUBLIC_DEBUG_LOGS === "1";
+    return (
+      (globalThis as unknown as { __DEBUG__?: boolean }).__DEBUG__ === true ||
+      process.env.NEXT_PUBLIC_DEBUG_LOGS === "1"
+    );
   }
   return process.env.NEXT_PUBLIC_DEBUG_LOGS === "1";
 };

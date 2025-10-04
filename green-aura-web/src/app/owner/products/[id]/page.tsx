@@ -105,7 +105,7 @@ export default function EditProductPage() {
         }
       }
 
-      await ApiService.updateProduct(productId, { ...form, image_url: imageUrl || null } as any);
+      await ApiService.updateProduct(productId, { ...form, image_url: imageUrl || null });
       toast.success("Product updated successfully");
       router.push("/owner/products");
     } catch (error) {

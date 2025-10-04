@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 
 export default function FarmsPage() {
-  const [orgs, setOrgs] = useState<any[]>([]);
+  type Org = { id: string; name: string; address?: string | null };
+  const [orgs, setOrgs] = useState<Org[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,8 +18,9 @@ export default function FarmsPage() {
         setLoading(true);
         const data = await ApiService.getOrganizations(40);
         setOrgs(data ?? []);
-      } catch (e: any) {
-        setError(e?.message ?? "Failed to load farms");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Failed to load farms";
+        setError(message);
       } finally {
         setLoading(false);
       }

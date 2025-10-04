@@ -15,7 +15,8 @@ import { useMemo } from "react";
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, updateQuantity, removeItem, clearCart, isLoading, itemCount, subtotal } = useCart();
+  const { items, updateQuantity, removeItem, clearCart, isLoading, itemCount, subtotal } =
+    useCart();
 
   // Delivery fee calculation
   const deliveryFee = subtotal >= 500 ? 0 : 50;
@@ -37,8 +38,7 @@ export default function CartPage() {
         variants={pageTransition}
         initial="hidden"
         animate="visible"
-        exit="exit"
-      >
+        exit="exit">
         <div className="max-w-md mx-auto">
           <div className="flex justify-center mb-6">
             <div className="w-24 h-24 rounded-full bg-muted/50 flex items-center justify-center">
@@ -47,7 +47,7 @@ export default function CartPage() {
           </div>
           <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
           <p className="text-muted-foreground mb-8">
-            Looks like you haven't added any products to your cart yet.
+            Looks like you haven&apos;t added any products to your cart yet.
           </p>
           <Button asChild>
             <Link href="/products">Start Shopping</Link>
@@ -63,8 +63,7 @@ export default function CartPage() {
       variants={pageTransition}
       initial="hidden"
       animate="visible"
-      exit="exit"
-    >
+      exit="exit">
       <h1 className="text-2xl font-bold mb-6">Your Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -79,8 +78,7 @@ export default function CartPage() {
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                layout
-              >
+                layout>
                 {/* Product Image */}
                 <div className="relative w-full sm:w-24 h-24 bg-muted/30 rounded-md overflow-hidden">
                   {item.product.image_url ? (
@@ -102,8 +100,7 @@ export default function CartPage() {
                 <div className="flex-1">
                   <Link
                     href={`/product/${item.product_id}`}
-                    className="font-medium hover:text-primary"
-                  >
+                    className="font-medium hover:text-primary">
                     {item.product.name}
                   </Link>
                   <div className="text-sm text-muted-foreground mb-2">
@@ -123,8 +120,7 @@ export default function CartPage() {
                       variant="ghost"
                       size="sm"
                       className="text-muted-foreground hover:text-destructive"
-                      onClick={() => removeItem(item.id)}
-                    >
+                      onClick={() => removeItem(item.id)}>
                       <Trash2 size={16} />
                       <span className="sr-only">Remove</span>
                     </Button>
@@ -144,8 +140,7 @@ export default function CartPage() {
               variant="outline"
               size="sm"
               onClick={clearCart}
-              className="text-muted-foreground"
-            >
+              className="text-muted-foreground">
               Clear Cart
             </Button>
             <Button variant="outline" size="sm" asChild>
@@ -158,7 +153,7 @@ export default function CartPage() {
         <div>
           <div className="border rounded-lg p-6 bg-card sticky top-20">
             <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-            
+
             <div className="space-y-3 mb-6">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal ({itemCount} items)</span>
@@ -178,12 +173,12 @@ export default function CartPage() {
                 <span>{formatPrice(total)}</span>
               </div>
             </div>
-            
+
             <Button className="w-full" onClick={() => router.push("/checkout")}>
               Checkout
               <ArrowRight size={16} className="ml-2" />
             </Button>
-            
+
             <div className="mt-4 text-xs text-muted-foreground">
               <p>
                 By proceeding to checkout, you agree to our{" "}

@@ -101,8 +101,10 @@ export default function VerifyPage() {
       // If successful, redirect based on role
       // After verify, AuthContext onAuthStateChange will set user; let middleware handle too
       router.push("/");
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -134,8 +136,9 @@ export default function VerifyPage() {
       // Show success message
       setError(null);
       alert("A new verification code has been sent to your email");
-    } catch (err: any) {
-      setError(err.message || "Failed to resend code");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to resend code";
+      setError(message);
     } finally {
       setIsLoading(false);
     }

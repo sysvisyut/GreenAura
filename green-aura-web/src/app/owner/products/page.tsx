@@ -15,7 +15,16 @@ import { Plus, Search, Edit, Trash2, AlertCircle } from "lucide-react";
 export default function OwnerProductsPage() {
   const { user } = useAuth();
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [products, setProducts] = useState<any[]>([]);
+  type Product = {
+    id: string;
+    name: string;
+    price: number;
+    unit: string;
+    stock_quantity: number;
+    category?: string | null;
+    is_available: boolean;
+  };
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -43,7 +52,7 @@ export default function OwnerProductsPage() {
       (p.category && p.category.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const toggleAvailability = async (p: any) => {
+  const toggleAvailability = async (p: Product) => {
     try {
       const updated = await ApiService.updateProduct(p.id, { is_available: !p.is_available });
       setProducts((prev) => prev.map((x) => (x.id === p.id ? updated : x)));
@@ -52,7 +61,7 @@ export default function OwnerProductsPage() {
     }
   };
 
-  const deleteProduct = async (p: any) => {
+  const deleteProduct = async (p: Product) => {
     if (!confirm(`Are you sure you want to delete ${p.name}?`)) return;
 
     try {

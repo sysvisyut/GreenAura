@@ -14,9 +14,18 @@ import { Package, ShoppingBag, TrendingUp, AlertCircle } from "lucide-react";
 
 export default function OwnerDashboardPage() {
   const { user } = useAuth();
-  const [org, setOrg] = useState<any | null>(null);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+  type Org = { id: string; name: string } | null;
+  type Order = { id: string; total_amount: number; status: string; order_date: string };
+  type Product = {
+    id: string;
+    name: string;
+    category?: string | null;
+    price: number;
+    stock_quantity: number;
+  };
+  const [org, setOrg] = useState<Org>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
