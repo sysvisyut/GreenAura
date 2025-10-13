@@ -128,10 +128,10 @@ export default function HomePage() {
     console.log("Adding to cart:", productId);
   };
 
-  // const shopNowHref = user
-  //   ? (user.role === "organization" ? "/owner" : "/products")
-  //   : "/login";
-  const shopNowHref = "/products";
+  const shopNowHref = user
+    ? (user.role === "organization" ? "/owner" : "/products")
+    : "/products";
+  // const shopNowHref = "/products";
 
   return (
     <>

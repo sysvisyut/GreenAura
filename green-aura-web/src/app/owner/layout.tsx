@@ -7,13 +7,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Package, Settings, ShoppingBag } from "lucide-react";
+import { LayoutGrid, Package, Settings, ShoppingBag, User } from "lucide-react";
 
 const navItems = [
   { href: "/owner", label: "Dashboard", icon: LayoutGrid },
   { href: "/owner/products", label: "Products", icon: Package },
   { href: "/owner/orders", label: "Orders", icon: ShoppingBag },
   { href: "/owner/settings", label: "Settings", icon: Settings },
+  { href: "/profile", label: "Profile", icon: User },
 ];
 
 export default function OwnerLayout({
@@ -25,7 +26,6 @@ export default function OwnerLayout({
 
   return (
     <>
-      <Navbar />
       <main className="min-h-[calc(100vh-4rem)]">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row gap-6">
@@ -66,7 +66,6 @@ export default function OwnerLayout({
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }
