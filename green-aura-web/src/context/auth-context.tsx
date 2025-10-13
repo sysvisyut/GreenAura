@@ -5,6 +5,7 @@ import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { createLogger } from "@/lib/logger";
 import { ApiService } from "@/services/apiService";
+import { TablesInsert, TablesUpdate } from "@/types/supabase";
 
 const log = createLogger("AuthContext");
 
@@ -18,7 +19,13 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  profile: any | null;
+  profile: {
+    id?: string;
+    full_name?: string | null;
+    role?: "customer" | "organization";
+    phone_number?: string | null;
+    profile_picture_url?: string | null;
+  } | null;
   isLoading: boolean;
   signUpWithEmail: (
     fullName: string,
@@ -30,24 +37,38 @@ type AuthContextType = {
   verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
   resendOtp: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (data: any) => Promise<void>;
+  updateProfile: (data: Partial<NonNullable<AuthContextType["profile"]>>) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<AuthContextType["profile"]>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const supabase = getSupabaseClient();
 
   useEffect(() => {
+    log.info("AuthProvider mounted - initializing session");
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        log.warn("AuthProvider timeout fallback: forcing isLoading=false after 3s");
+        setIsLoading(false);
+      }
+    }, 3000);
+
     const fetchUser = async () => {
       try {
+        const start = Date.now();
         const {
           data: { session },
         } = await supabase.auth.getSession();
+        log.info("fetchUser: getSession result", {
+          hasSession: !!session,
+          userId: session?.user?.id,
+          ms: Date.now() - start,
+        });
 
         if (session?.user) {
           const { data: profileData } = await supabase
@@ -55,17 +76,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .select("*")
             .eq("id", session.user.id)
             .maybeSingle();
+          log.info("fetchUser: loaded profile", {
+            hasProfile: !!profileData,
+            role: (profileData as { role?: "customer" | "organization" } | null)?.role,
+          });
 
           setUser({
             id: session.user.id,
             email: session.user.email ?? undefined,
             full_name: profileData?.full_name ?? undefined,
-            role: (profileData?.role as any) ?? undefined,
+            role: (profileData?.role as "customer" | "organization" | undefined) ?? undefined,
           });
           setProfile(profileData ?? null);
 
           // Auto-create organization for organization role
-          if ((profileData as any)?.role === "organization") {
+          if (
+            (profileData as { role?: "customer" | "organization" } | null)?.role === "organization"
+          ) {
             try {
               const existing = await ApiService.getOrganizationByOwner(session.user.id);
               if (!existing) {
@@ -83,7 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         log.error("Error fetching user", error);
       } finally {
+        clearTimeout(timeoutId);
         setIsLoading(false);
+        log.info("AuthProvider initial load complete");
       }
     };
 
@@ -92,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      log.debug("Auth state changed", { event });
+      log.info("onAuthStateChange", { event, userId: session?.user?.id });
 
       if (session?.user) {
         const { data: profileData } = await supabase
@@ -105,11 +134,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: session.user.id,
           email: session.user.email ?? undefined,
           full_name: profileData?.full_name ?? undefined,
-          role: (profileData?.role as any) ?? undefined,
+          role: (profileData?.role as "customer" | "organization" | undefined) ?? undefined,
         });
         setProfile(profileData ?? null);
 
-        if ((profileData as any)?.role === "organization") {
+        if (
+          (profileData as { role?: "customer" | "organization" } | null)?.role === "organization"
+        ) {
           try {
             const existing = await ApiService.getOrganizationByOwner(session.user.id);
             if (!existing) {
@@ -128,13 +159,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null);
       }
 
+      clearTimeout(timeoutId);
       setIsLoading(false);
+      log.info("AuthProvider auth state handled; isLoading=false");
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase, isLoading]);
 
   const signUpWithEmail = async (
     fullName: string,
@@ -182,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     router.push("/login");
   };
 
-  const updateProfile = async (data: any) => {
+  const updateProfile = async (data: Partial<NonNullable<AuthContextType["profile"]>>) => {
     if (!user) return;
 
     try {
@@ -193,10 +226,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle();
 
       if (existingProfile) {
-        const { error } = await supabase.from("users").update(data).eq("id", user.id);
-        if (error) throw error;
+        const { error } = await supabase
+          .from("users")
+          .update(data as TablesUpdate<"users">)
+          .eq("id", user.id);
+        if (error) throw error; 
       } else {
-        const { error } = await supabase.from("users").insert([{ id: user.id, ...data }]);
+        const { error } = await supabase.from("users").insert([{ id: user.id, ...data } as TablesInsert<"users">]);
         if (error) throw error;
       }
 

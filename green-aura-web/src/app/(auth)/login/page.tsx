@@ -32,7 +32,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) {
       // Redirect based on role
-      if ((user as any).role === "organization") router.push("/owner");
+      if (user.role === "organization") router.push("/owner");
       else router.push("/");
     }
   }, [user, router]);
@@ -41,7 +41,7 @@ export default function LoginPage() {
     try {
       document.cookie = `ga_skip_auth=true; path=/; max-age=${60 * 10}`; // 10 minutes
       router.push("/");
-    } catch (e) {
+    } catch {
       // no-op
     }
   };
@@ -75,8 +75,10 @@ export default function LoginPage() {
       // After the sign-in attempt, the AuthContext's onAuthStateChange listener
       // will update the `user` state. The useEffect above will then trigger
       // the redirect. We set loading to false here to unblock the UI in case of error.
-    } catch (err: any) {
-      setError(err.message || "Something went wrong. Please try again.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -144,9 +146,6 @@ export default function LoginPage() {
               Sign up
             </Link>
           </p>
-          <Button variant="outline" onClick={handleSkip}>
-            Skip for now
-          </Button>
         </CardFooter>
       </Card>
     </motion.div>

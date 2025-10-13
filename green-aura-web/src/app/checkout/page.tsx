@@ -32,7 +32,15 @@ export default function CheckoutPage() {
   const router = useRouter();
 
   const [step, setStep] = useState<1 | 2>(1);
-  const [addresses, setAddresses] = useState<any[]>([]);
+  type Address = {
+    id: string;
+    address_line_1: string;
+    city: string;
+    pincode: string;
+    landmark?: string | null;
+    address_type?: string | null;
+  };
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,8 +58,9 @@ export default function CheckoutPage() {
         const data = await ApiService.getUserAddresses(user.id);
         setAddresses(data ?? []);
         setSelectedAddress(data?.[0]?.id ?? null);
-      } catch (e: any) {
-        setError(e?.message ?? "Failed to load addresses");
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Failed to load addresses";
+        setError(message);
         log.error("Checkout addresses error", e);
       } finally {
         setLoading(false);
@@ -214,7 +223,7 @@ export default function CheckoutPage() {
                   {addresses.length === 0 ? (
                     <div className="text-center py-6">
                       <p className="text-muted-foreground mb-4">
-                        You don't have any saved addresses
+                        You don&apos;t have any saved addresses
                       </p>
                       <Button asChild>
                         <Link href="/profile?tab=addresses" className="flex items-center gap-2">

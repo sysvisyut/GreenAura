@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { pageTransition } from "@/lib/animations";
 import { motion } from "framer-motion";
@@ -26,7 +26,7 @@ export default function CategoriesPage() {
         const products = await ApiService.getAllProducts({ sort: "created_desc", limit: 500 });
         const mapCount: Record<string, number> = {};
         const mapThumb: Record<string, string> = {};
-        (products ?? []).forEach((p: any) => {
+        (products ?? []).forEach((p) => {
           const c = (p.category ?? "").trim();
           if (!c) return;
           mapCount[c] = (mapCount[c] ?? 0) + 1;

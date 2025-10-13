@@ -20,7 +20,7 @@ export default function NewProductPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [orgId, setOrgId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
   const [isSaving, setIsSaving] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -37,7 +37,6 @@ export default function NewProductPage() {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      setIsLoading(true);
       try {
         // Get organization ID
         const org = await ApiService.getOrganizationByOwner(user.id);
@@ -47,7 +46,6 @@ export default function NewProductPage() {
       } catch (error) {
         console.error("Failed to load initial data", error);
       } finally {
-        setIsLoading(false);
       }
     };
     fetchData();
@@ -79,7 +77,7 @@ export default function NewProductPage() {
       if (!imageUrl && imageFile) {
         try {
           imageUrl = await ApiService.uploadProductImage(imageFile, orgId);
-        } catch (uploadErr: any) {
+        } catch (uploadErr) {
           console.error("Image upload failed", uploadErr);
           toast.error("Image upload failed. Please try again.");
           setIsSaving(false);
@@ -240,11 +238,14 @@ export default function NewProductPage() {
                       }}
                     />
                     {imagePreview && (
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-32 h-32 object-cover rounded-md border"
-                      />
+                      <div className="relative w-32 h-32">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-32 h-32 object-cover rounded-md border"
+                        />
+                      </div>
                     )}
                     <p className="text-xs text-muted-foreground">
                       Optional. If provided, the file will be uploaded to storage and the public URL

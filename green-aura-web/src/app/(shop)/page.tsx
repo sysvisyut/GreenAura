@@ -9,7 +9,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useAuth } from "@/context/auth-context";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 
@@ -102,8 +101,16 @@ const FARMS = [
 
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
-  const { user } = useAuth();
+  type Product = {
+    id: string;
+    name: string;
+    price: number;
+    unit: string;
+    image_url?: string | null;
+    category?: string | null;
+  };
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  // Auth is not used on this page currently
 
   // Load featured from Supabase
   useEffect(() => {

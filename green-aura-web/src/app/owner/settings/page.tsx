@@ -14,7 +14,13 @@ import { Building, MapPin, FileText, Save } from "lucide-react";
 
 export default function OwnerSettingsPage() {
   const { user } = useAuth();
-  const [org, setOrg] = useState<any | null>(null);
+  type Org = {
+    id: string;
+    name?: string | null;
+    description?: string | null;
+    address?: string | null;
+  };
+  const [org, setOrg] = useState<Org | null>(null);
   const [form, setForm] = useState({ name: "", description: "", address: "" });
   const [saving, setSaving] = useState(false);
 
@@ -46,7 +52,7 @@ export default function OwnerSettingsPage() {
         name: form.name,
         description: form.description,
         address: form.address,
-      } as any);
+      });
       toast.success("Organization settings updated successfully");
     } catch (error) {
       console.error("Failed to update organization", error);

@@ -12,7 +12,15 @@ type SortOption = "created_desc" | "price_asc" | "price_desc" | "name_asc";
 
 export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [products, setProducts] = useState<any[]>([]);
+  type Product = {
+    id: string;
+    name: string;
+    price: number;
+    unit: string;
+    image_url?: string | null;
+    category?: string | null;
+  };
+  const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("created_desc");
   const [categories, setCategories] = useState<string[]>([]);

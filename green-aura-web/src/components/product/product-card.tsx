@@ -18,15 +18,17 @@ interface ProductCardProps {
     category?: string | null;
     unit: string;
   };
+  onAddToCart?: () => void;
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const { addItem } = useCart();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addItem(product, 1);
+    onAddToCart?.();
   };
 
   const handleAddToWishlist = (e: React.MouseEvent) => {
@@ -42,8 +44,7 @@ export function ProductCard({ product }: ProductCardProps) {
         whileHover={{ y: -4 }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+        transition={{ duration: 0.3 }}>
         <div className="relative aspect-square overflow-hidden bg-muted/30">
           {product.image_url ? (
             <Image
@@ -58,16 +59,15 @@ export function ProductCard({ product }: ProductCardProps) {
               No image
             </div>
           )}
-          
+
           {/* Wishlist button */}
           <motion.button
             className="absolute top-2 right-2 h-8 w-8 rounded-full bg-background/80 flex items-center justify-center text-muted-foreground hover:text-primary"
             whileTap={buttonTap}
-            onClick={handleAddToWishlist}
-          >
+            onClick={handleAddToWishlist}>
             <Heart size={18} />
           </motion.button>
-          
+
           {/* Category badge */}
           {product.category && (
             <div className="absolute top-2 left-2">
@@ -77,7 +77,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
         </div>
-        
+
         <div className="p-4">
           <h3 className="font-medium truncate">{product.name}</h3>
           <div className="flex items-center justify-between mt-1">
@@ -85,7 +85,7 @@ export function ProductCard({ product }: ProductCardProps) {
               <span className="font-semibold">{formatPrice(product.price)}</span>
               <span className="text-xs text-muted-foreground">/ {product.unit}</span>
             </div>
-            
+
             <motion.button
               className={cn(
                 "h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground",
@@ -93,8 +93,7 @@ export function ProductCard({ product }: ProductCardProps) {
               )}
               whileTap={buttonTap}
               onClick={handleAddToCart}
-              aria-label="Add to cart"
-            >
+              aria-label="Add to cart">
               <ShoppingCart size={16} />
             </motion.button>
           </div>

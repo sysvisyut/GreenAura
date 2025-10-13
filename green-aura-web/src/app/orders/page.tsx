@@ -7,20 +7,26 @@ import { useAuth } from "@/context/auth-context";
 import { AuthGate } from "@/components/AuthGate";
 import { motion } from "framer-motion";
 import { pageTransition } from "@/lib/animations";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatPrice } from "@/lib/utils";
-import { Package, ShoppingBag, Clock, CheckCircle2, Truck, ArrowRight, AlertCircle } from "lucide-react";
+import { Package, ShoppingBag, Clock, CheckCircle2, Truck, ArrowRight } from "lucide-react";
+import { createLogger } from "@/lib/logger";
 
-const statusIcons: Record<string, any> = {
+const log = createLogger("OrdersPage");
+
+const statusIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   pending: Clock,
   confirmed: CheckCircle2,
   out_for_delivery: Truck,
   delivered: Package,
 };
 
-const statusColors: Record<string, "warning" | "info" | "secondary" | "success" | "outline" | "default" | "destructive"> = {
+const statusColors: Record<
+  string,
+  "warning" | "info" | "secondary" | "success" | "outline" | "default" | "destructive"
+> = {
   pending: "warning",
   confirmed: "info",
   out_for_delivery: "secondary",
@@ -29,20 +35,24 @@ const statusColors: Record<string, "warning" | "info" | "secondary" | "success" 
 
 export default function OrdersPage() {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<any[]>([]);
+  type Order = { id: string; status: string; order_date: string; total_amount: number };
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
     const fetchOrders = async () => {
+      log.info("fetchOrders:start", { userId: user.id });
       setIsLoading(true);
       try {
         const data = await ApiService.getUserOrders(user.id);
+        log.info("fetchOrders:success", { count: (data ?? []).length });
         setOrders(data ?? []);
       } catch (error) {
-        console.error("Failed to fetch orders", error);
+        log.error("fetchOrders:error", error);
       } finally {
         setIsLoading(false);
+        log.info("fetchOrders:end");
       }
     };
     fetchOrders();
@@ -84,7 +94,7 @@ export default function OrdersPage() {
               </div>
               <h3 className="text-lg font-medium mb-2">No orders yet</h3>
               <p className="text-muted-foreground mb-4">
-                You haven't placed any orders yet. Start shopping to see your orders here.
+                You haven&apos;t placed any orders yet. Start shopping to see your orders here.
               </p>
               <Button asChild>
                 <Link href="/products">Browse Products</Link>
@@ -101,7 +111,9 @@ export default function OrdersPage() {
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-medium">Order #{order.id.slice(0, 8)}</h3>
-                          <Badge variant={statusColors[order.status] || "outline"} className="flex items-center gap-1">
+                          <Badge
+                            variant={statusColors[order.status] || "outline"}
+                            className="flex items-center gap-1">
                             <StatusIcon status={order.status} />
                             <span className="capitalize">{order.status.replace(/_/g, " ")}</span>
                           </Badge>

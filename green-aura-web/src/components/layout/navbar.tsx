@@ -1,32 +1,15 @@
 "use client";
 
-import { useAuth } from "@/context/auth-context";
 import { useCart } from "@/context/cart-context";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import {
-  ShoppingCart,
-  User,
-  Menu,
-  X,
-  Search,
-  Home,
-  LayoutGrid,
-  Leaf,
-  Sprout,
-  Vegan,
-  Flower2,
-  LeafIcon,
-  LeafyGreen,
-  LucideLeaf,
-  LeafyGreenIcon,
-} from "lucide-react";
+import { ShoppingCart, User, Menu, X, Search, Home, LayoutGrid, Vegan } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function Navbar() {
-  const { user } = useAuth();
+  // user is not used here; cart badge is handled via useCart()
   const { itemCount } = useCart();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);

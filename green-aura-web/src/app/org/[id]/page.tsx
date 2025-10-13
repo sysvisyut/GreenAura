@@ -12,8 +12,10 @@ export default function OrgPage() {
   const params = useParams();
   const orgId = params?.id as string;
 
-  const [org, setOrg] = useState<any | null>(null);
-  const [products, setProducts] = useState<any[]>([]);
+  type Org = { id: string; name: string; description?: string | null; address?: string | null };
+  type Product = { id: string; name: string; price: number; unit: string };
+  const [org, setOrg] = useState<Org | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,9 +31,10 @@ export default function OrgPage() {
         setOrg(o);
         setProducts(p ?? []);
         log.info("OrgPage loaded", { orgId, products: p?.length });
-      } catch (e: any) {
+      } catch (e) {
         log.error("OrgPage error", e);
-        setError(e?.message ?? "Failed to load");
+        const message = e instanceof Error ? e.message : "Failed to load";
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -52,11 +55,21 @@ export default function OrgPage() {
 
       <section>
         <h2>Products</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+            gap: 12,
+          }}>
           {products.map((p) => (
-            <Link key={p.id} href={`/product/${p.id}`} style={{ border: "1px solid #333", borderRadius: 8, padding: 12 }}>
+            <Link
+              key={p.id}
+              href={`/product/${p.id}`}
+              style={{ border: "1px solid #333", borderRadius: 8, padding: 12 }}>
               <div style={{ fontWeight: 600 }}>{p.name}</div>
-              <div style={{ opacity: 0.8 }}>{p.unit} • ₹{p.price}</div>
+              <div style={{ opacity: 0.8 }}>
+                {p.unit} • ₹{p.price}
+              </div>
             </Link>
           ))}
         </div>

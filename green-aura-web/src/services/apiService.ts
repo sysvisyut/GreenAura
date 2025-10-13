@@ -393,7 +393,9 @@ export const ApiService = {
       log.error("listCategories: error", error);
       throw error;
     }
-    const categories = Array.from(new Set((data ?? []).map((r) => (r as any).category as string)));
+    const categories = Array.from(
+      new Set((data ?? []).map((r) => (r as { category: string }).category))
+    );
     return categories;
   },
 
@@ -545,7 +547,7 @@ export const ApiService = {
     const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("payments")
-      .update({ status, transaction_id: transactionId, gateway_response: gatewayResponse as any })
+      .update({ status, transaction_id: transactionId, gateway_response: gatewayResponse as Json })
       .eq("order_id", orderId)
       .select()
       .maybeSingle();

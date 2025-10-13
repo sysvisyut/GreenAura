@@ -8,7 +8,15 @@ import { motion } from "framer-motion";
 
 export default function NewProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [products, setProducts] = useState<any[]>([]);
+  type Product = {
+    id: string;
+    name: string;
+    price: number;
+    unit: string;
+    image_url?: string | null;
+    category?: string | null;
+  };
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const run = async () => {

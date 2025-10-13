@@ -14,7 +14,15 @@ export default function CategoryPage() {
   const params = useParams();
   const slug = (params?.slug as string) ?? "";
 
-  const [products, setProducts] = useState<any[]>([]);
+  type Product = {
+    id: string;
+    name: string;
+    price: number;
+    unit: string;
+    image_url?: string | null;
+    category?: string | null;
+  };
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortOption, setSortOption] = useState("featured");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -53,7 +61,9 @@ export default function CategoryPage() {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Category Not Found</h1>
-        <p className="text-muted-foreground mb-8">The category you're looking for doesn't exist.</p>
+        <p className="text-muted-foreground mb-8">
+          The category you&apos;re looking for doesn&apos;t exist.
+        </p>
         <Button asChild>
           <Link href="/categories">View All Categories</Link>
         </Button>
